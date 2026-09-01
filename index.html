@@ -197,6 +197,55 @@
   }
   .toast.show{ opacity:1; }
   .hidden{ display:none !important; }
+
+  /* --- Podio e classifica pubblica --- */
+  .results-public{ margin-top:24px; }
+  .podium-title{
+    font-family:'Fraunces', serif; font-weight:700; font-size:19px;
+    margin:0 0 4px;
+  }
+  .podium-sub{ font-size:13px; color:#c9bfd6; margin:0 0 20px; }
+  .podium{
+    display:flex; align-items:flex-end; justify-content:center; gap:10px;
+    margin-bottom:28px;
+  }
+  .podium-slot{ text-align:center; flex:1; max-width:150px; }
+  .podium-slot .photo-wrap{
+    position:relative; border-radius:12px; overflow:hidden;
+    border:2px solid var(--line); background:var(--ink-soft);
+    aspect-ratio:3/4;
+  }
+  .podium-slot .photo-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .podium-slot .photo-wrap .noimg{
+    width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    color:#7a6f85; font-size:11px; text-align:center; padding:6px;
+  }
+  .podium-slot.gold .photo-wrap{ border-color:#E8C468; box-shadow:0 0 0 3px rgba(232,196,104,0.18); }
+  .podium-slot.silver .photo-wrap{ border-color:#C9D0D9; box-shadow:0 0 0 3px rgba(201,208,217,0.16); }
+  .podium-slot.bronze .photo-wrap{ border-color:#D08A5C; box-shadow:0 0 0 3px rgba(208,138,92,0.16); }
+  .podium-slot.gold{ order:2; }
+  .podium-slot.silver{ order:1; margin-bottom:16px; }
+  .podium-slot.bronze{ order:3; margin-bottom:24px; }
+  .medal{
+    font-family:'Fraunces', serif; font-weight:900; font-size:13px;
+    margin-top:10px; margin-bottom:2px;
+  }
+  .podium-slot.gold .medal{ color:#E8C468; }
+  .podium-slot.silver .medal{ color:#C9D0D9; }
+  .podium-slot.bronze .medal{ color:#D08A5C; }
+  .podium-slot .pnum{ font-family:'Fraunces',serif; font-weight:700; font-size:20px; }
+  .podium-slot .pvotes{ font-size:12px; color:#c9bfd6; }
+
+  .ranking{ border-top:1px solid var(--line); padding-top:14px; }
+  .ranking-row{
+    display:flex; align-items:center; gap:12px;
+    padding:9px 0; border-bottom:1px solid var(--line); font-size:14px;
+  }
+  .ranking-row .rpos{ width:22px; color:#a99bb5; font-size:13px; }
+  .ranking-row .rnum{ font-family:'Fraunces',serif; font-weight:700; width:26px; }
+  .ranking-row .rbar{ flex:1; height:7px; border-radius:4px; background:var(--ink-soft); overflow:hidden; }
+  .ranking-row .rbar span{ display:block; height:100%; background:var(--pumpkin); }
+  .ranking-row .rcount{ width:30px; text-align:right; color:#c9bfd6; font-size:13px; }
   .setup-note{
     margin-top:18px; padding:12px 14px; border-radius:var(--radius);
     border:1px dashed var(--pumpkin); background: rgba(226,103,42,0.08);
@@ -217,9 +266,8 @@
     </div>
   </header>
 
-  <div class="grid" id="gallery">
-    <div class="empty">Caricamento costumi…</div>
-  </div>
+  <div class="grid" id="gallery"></div>
+  <div class="results-public hidden" id="resultsPublicView"></div>
 </div>
 
 <div class="gear" id="gearBtn" title="Area organizzatori">⚙</div>
@@ -269,7 +317,7 @@
     </div>
 
     <div class="row">
-      <button class="btn" id="toggleVoting">Apri / chiudi votazione</button>
+      <button class="btn" id="toggleVoting">Apri votazione</button>
     </div>
 
     <div class="admin-section">
@@ -301,12 +349,12 @@
    Google Apps Script (vedi ISTRUZIONI-SETUP.md). Incolla l'URL del Web App,
    che finisce con /exec
    ========================================================================= */
-const API_URL = "https://script.google.com/macros/s/AKfycbwMWCQNDas9pHzaEvekAAm_7CSLD2TRpeK2UWk_wUIm2dQSGy3CCMyvbMpGv4Vw4P5p/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxr-yUOhyCGhjOwviukH2j4QAclH1A3QhTifW8Hs10ZjL6bYk4bASAP7lJG6oDmW-hQ/exec";
 
 const ADMIN_PIN = "3110"; // 31/10 — cambialo se vuoi
 const REFRESH_MS = 8000;  // ogni quanto la pagina ricontrolla lo stato
 
-let state = { eventName: "Concorso Miglior Costume", total: 0, votingOpen: false, contestants: {}, votes: {} };
+let state = { eventName: "Concorso Miglior Costume", total: 0, phase: "pending", contestants: {}, votes: {} };
 let myVote = null; // number del costume votato da questo browser, o null
 
 function toast(msg){
@@ -362,7 +410,7 @@ function saveMyVoteLocal(n){
 async function loadState(){
   const data = await apiGet();
   if(data){
-    state = Object.assign({eventName:"Concorso Miglior Costume", total:0, votingOpen:false, contestants:{}, votes:{}}, data);
+    state = Object.assign({eventName:"Concorso Miglior Costume", total:0, phase:"pending", contestants:{}, votes:{}}, data);
   }
   document.getElementById('eventTitle').textContent = state.eventName || "Concorso Miglior Costume";
 }
@@ -377,11 +425,18 @@ function renderStatus(){
     text.textContent = 'Backend non configurato — vedi il pannello organizzatori.';
     return;
   }
+  if(state.phase === 'closed'){
+    dot.className = 'dot closed';
+    text.textContent = myVote
+      ? `Votazione chiusa — hai votato il costume nº ${myVote}. Ecco il podio!`
+      : 'Votazione chiusa. Ecco il podio!';
+    return;
+  }
   if(myVote){
     dot.className = 'dot open';
     text.textContent = `Hai votato il costume nº ${myVote}. Grazie per aver partecipato!`;
     bar.classList.add('voted');
-  } else if(state.votingOpen){
+  } else if(state.phase === 'open'){
     dot.className = 'dot open';
     text.textContent = 'Votazione aperta — tocca il costume che preferisci.';
   } else {
@@ -392,6 +447,17 @@ function renderStatus(){
 
 function renderGallery(){
   const gallery = document.getElementById('gallery');
+  const resultsView = document.getElementById('resultsPublicView');
+
+  if(state.phase === 'closed'){
+    gallery.classList.add('hidden');
+    resultsView.classList.remove('hidden');
+    renderPublicResults();
+    return;
+  }
+  gallery.classList.remove('hidden');
+  resultsView.classList.add('hidden');
+
   if(!state.total || state.total < 1){
     gallery.innerHTML = '<div class="empty">I costumi verranno mostrati qui appena l&#39;organizzatore avrà impostato i partecipanti.</div>';
     return;
@@ -405,7 +471,7 @@ function renderGallery(){
     card.style.order = n; // ordine sempre garantito, indipendentemente dai dati arrivati
     const isMine = myVote === n;
     if(isMine) card.classList.add('mine');
-    const canVote = state.votingOpen && !myVote;
+    const canVote = state.phase === 'open' && !myVote;
     if(canVote) card.classList.add('votable');
 
     card.innerHTML = `
@@ -418,6 +484,69 @@ function renderGallery(){
     }
     gallery.appendChild(card);
   }
+}
+
+function rankedList(){
+  const list = [];
+  for(let n=1; n<=state.total; n++){
+    list.push({
+      n,
+      c: (state.votes && state.votes[String(n)]) || 0,
+      photo: (state.contestants && state.contestants[String(n)]) || null
+    });
+  }
+  list.sort((a,b)=> b.c - a.c);
+  return list;
+}
+
+function podiumSlotHtml(item, place){
+  if(!item) return '';
+  const cls = place===1 ? 'gold' : place===2 ? 'silver' : 'bronze';
+  const medalLabel = place===1 ? '1° posto — Vincitore' : place===2 ? '2° posto' : '3° posto';
+  return `
+    <div class="podium-slot ${cls}">
+      <div class="photo-wrap">
+        ${item.photo ? `<img src="${item.photo}" alt="Costume ${item.n}">` : `<div class="noimg">Nessuna foto</div>`}
+      </div>
+      <div class="medal">${medalLabel}</div>
+      <div class="pnum">Nº ${item.n}</div>
+      <div class="pvotes">${item.c} ${item.c===1?'voto':'voti'}</div>
+    </div>
+  `;
+}
+
+function renderPublicResults(){
+  const view = document.getElementById('resultsPublicView');
+  if(!state.total){ view.innerHTML = ''; return; }
+  const list = rankedList();
+  const [first, second, third] = list;
+
+  const podiumHtml = `
+    <div class="podium-title">Il podio 🏆</div>
+    <div class="podium-sub">${state.eventName || 'Concorso Miglior Costume'} — grazie a tutti i partecipanti!</div>
+    <div class="podium">
+      ${podiumSlotHtml(second, 2)}
+      ${podiumSlotHtml(first, 1)}
+      ${podiumSlotHtml(third, 3)}
+    </div>
+  `;
+
+  const rankingRows = list.map((item, idx)=> `
+    <div class="ranking-row">
+      <div class="rpos">${idx+1}°</div>
+      <div class="rnum">${item.n}</div>
+      <div class="rbar"><span style="width:${list[0].c ? (item.c/list[0].c*100) : 0}%;"></span></div>
+      <div class="rcount">${item.c}</div>
+    </div>
+  `).join('');
+
+  view.innerHTML = `
+    ${podiumHtml}
+    <div class="ranking">
+      <div class="podium-title" style="font-size:16px;">Classifica completa</div>
+      ${rankingRows}
+    </div>
+  `;
 }
 
 function openVoteConfirm(n){
@@ -453,8 +582,9 @@ async function refreshAll(){
   if(document.getElementById('adminOverlay').classList.contains('hidden')){
     const signature = JSON.stringify({
       total: state.total,
-      votingOpen: state.votingOpen,
+      phase: state.phase,
       contestants: state.contestants,
+      votes: state.phase === 'closed' ? state.votes : null,
       myVote: myVote
     });
     if(signature !== lastGallerySignature){
@@ -496,11 +626,19 @@ document.getElementById('pinConfirm').onclick = ()=>{
   }
 };
 
+function updateToggleButtonLabel(){
+  const btn = document.getElementById('toggleVoting');
+  if(state.phase === 'pending') btn.textContent = 'Apri votazione';
+  else if(state.phase === 'open') btn.textContent = 'Chiudi votazione e mostra il podio';
+  else btn.textContent = 'Riapri la votazione';
+}
+
 async function openAdminPanel(){
   document.getElementById('apiWarning').classList.toggle('hidden', apiConfigured());
   await loadState();
   document.getElementById('cfgName').value = state.eventName || '';
   document.getElementById('cfgTotal').value = state.total || '';
+  updateToggleButtonLabel();
   renderContestantList();
   renderResults();
   document.getElementById('adminOverlay').classList.remove('hidden');
@@ -524,7 +662,7 @@ document.getElementById('cfgSave').onclick = async ()=>{
   const total = Math.min(200, parsedTotal);
 
   btn.disabled = true; btn.textContent = 'Salvataggio…';
-  const result = await apiPost({ action:'saveConfig', eventName:name, total:total, votingOpen: !!state.votingOpen });
+  const result = await apiPost({ action:'saveConfig', eventName:name, total:total, phase: state.phase || 'pending' });
   btn.disabled = false; btn.textContent = 'Salva impostazioni';
 
   if(result && result.ok){
@@ -539,11 +677,24 @@ document.getElementById('cfgSave').onclick = async ()=>{
 };
 
 document.getElementById('toggleVoting').onclick = async ()=>{
-  const newState = !state.votingOpen;
-  const result = await apiPost({ action:'saveConfig', eventName: state.eventName, total: state.total, votingOpen: newState });
+  let nextPhase;
+  let confirmMsg = null;
+  if(state.phase === 'pending') nextPhase = 'open';
+  else if(state.phase === 'open'){
+    nextPhase = 'closed';
+    confirmMsg = 'Chiudere la votazione? Sulla pagina principale apparirà subito il podio con i primi 3, e nessuno potrà più votare. Confermi?';
+  } else {
+    nextPhase = 'open';
+    confirmMsg = 'Riaprire la votazione? Il podio non sarà più visibile agli ospiti finché non richiudi. Confermi?';
+  }
+  if(confirmMsg && !confirm(confirmMsg)) return;
+
+  const result = await apiPost({ action:'saveConfig', eventName: state.eventName, total: state.total, phase: nextPhase });
   if(result && result.ok){
-    state.votingOpen = newState;
-    toast(newState ? 'Votazione aperta.' : 'Votazione chiusa.');
+    state.phase = nextPhase;
+    updateToggleButtonLabel();
+    const messages = { open: 'Votazione aperta.', closed: 'Votazione chiusa — il podio è ora visibile a tutti.', pending: 'Votazione riportata in stato di attesa.' };
+    toast(messages[nextPhase] || 'Stato aggiornato.');
   } else {
     toast('Operazione non riuscita. Riprova.');
   }
