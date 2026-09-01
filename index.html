@@ -1,0 +1,663 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Miglior Costume — Halloween</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#161119;
+    --ink-soft:#231b28;
+    --plum:#3B2352;
+    --plum-soft:#4d2f68;
+    --pumpkin:#E2672A;
+    --pumpkin-soft:#f08a52;
+    --bone:#F1E9DC;
+    --moss:#5C6B4B;
+    --line: rgba(241,233,220,0.14);
+    --radius: 14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(120% 140% at 15% -10%, var(--plum-soft) 0%, var(--ink) 45%), var(--ink);
+    color: var(--bone);
+    font-family:'Work Sans', sans-serif;
+    min-height:100vh;
+    padding-bottom:80px;
+  }
+  .wrap{ max-width:640px; margin:0 auto; padding:28px 20px 40px; }
+
+  header.top{ text-align:left; margin-bottom:22px; }
+  .kicker{ font-size:13px; color:var(--pumpkin-soft); letter-spacing:0.02em; margin-bottom:6px; }
+  h1{
+    font-family:'Fraunces', serif;
+    font-weight:900;
+    font-size:clamp(30px, 8vw, 42px);
+    line-height:1.05;
+    margin:0 0 10px;
+    color:var(--bone);
+  }
+  .sub{ font-size:15px; color:#c9bfd6; line-height:1.5; max-width:46ch; }
+
+  .status{
+    display:flex; align-items:center; gap:10px;
+    margin-top:18px; padding:12px 14px;
+    border-radius:var(--radius);
+    border:1px solid var(--line);
+    background: rgba(255,255,255,0.03);
+    font-size:14px;
+  }
+  .dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
+  .dot.open{ background:#7CB86B; box-shadow:0 0 0 4px rgba(124,184,107,0.18);}
+  .dot.closed{ background:var(--pumpkin); box-shadow:0 0 0 4px rgba(226,103,42,0.18);}
+  .status.voted{ border-color: rgba(124,184,107,0.4); }
+
+  .grid{
+    display:grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap:14px;
+    margin-top:24px;
+  }
+  @media(min-width:480px){ .grid{ grid-template-columns: repeat(3, 1fr);} }
+
+  .card{
+    position:relative;
+    border-radius:var(--radius);
+    overflow:hidden;
+    background: var(--ink-soft);
+    border:1px solid var(--line);
+    aspect-ratio: 3/4;
+    cursor:default;
+  }
+  .card.votable{ cursor:pointer; }
+  .card img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .card .noimg{
+    width:100%; height:100%;
+    display:flex; align-items:center; justify-content:center;
+    color:#7a6f85; font-size:13px; text-align:center; padding:10px;
+  }
+  .num{
+    position:absolute; top:8px; left:8px;
+    background: rgba(22,17,25,0.8);
+    border:1px solid var(--line);
+    color:var(--bone);
+    font-family:'Fraunces', serif; font-weight:700;
+    font-size:15px;
+    width:30px; height:30px;
+    border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    z-index:2;
+  }
+  .card.mine{ outline:3px solid var(--pumpkin); outline-offset:-3px; }
+  .mine-badge{
+    position:absolute; bottom:8px; right:8px;
+    background: var(--pumpkin);
+    color:var(--ink);
+    font-size:11px; font-weight:700;
+    padding:3px 8px; border-radius:20px;
+  }
+
+  .empty{
+    grid-column: 1 / -1;
+    text-align:center;
+    padding:40px 20px;
+    color:#a99bb5;
+    font-size:14px;
+    border:1px dashed var(--line);
+    border-radius:var(--radius);
+  }
+
+  .overlay{
+    position:fixed; inset:0;
+    background: rgba(10,7,12,0.72);
+    backdrop-filter: blur(2px);
+    display:flex; align-items:flex-end; justify-content:center;
+    z-index:50;
+  }
+  @media(min-width:600px){ .overlay{ align-items:center; } }
+  .sheet{
+    background: var(--ink-soft);
+    border:1px solid var(--line);
+    border-radius:20px 20px 0 0;
+    width:100%; max-width:480px;
+    padding:24px 22px 28px;
+    max-height:85vh; overflow-y:auto;
+  }
+  @media(min-width:600px){ .sheet{ border-radius:20px; } }
+  .sheet h2{ font-family:'Fraunces',serif; font-weight:700; font-size:22px; margin:0 0 6px; }
+  .sheet p{ color:#c9bfd6; font-size:14px; line-height:1.5; margin:0 0 18px;}
+  .row{ display:flex; gap:10px; margin-top:14px; }
+  .btn{
+    flex:1;
+    padding:13px 16px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--bone);
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:14px;
+    cursor:pointer;
+  }
+  .btn.primary{ background:var(--pumpkin); color:var(--ink); border-color:var(--pumpkin); }
+  .btn.danger{ background:transparent; border-color:#8a3b3b; color:#e08a8a; }
+  .btn:active{ transform: scale(0.98); }
+  .btn:disabled{ opacity:0.5; cursor:not-allowed; }
+
+  input[type=text], input[type=password]{
+    width:100%;
+    padding:11px 13px;
+    border-radius:10px;
+    border:1px solid var(--line);
+    background: var(--ink);
+    color:var(--bone);
+    font-size:15px;
+    margin-top:6px;
+  }
+  label.field{ display:block; font-size:13px; color:#c9bfd6; margin-top:16px; }
+
+  .gear{
+    position:fixed; bottom:16px; right:16px;
+    width:44px; height:44px; border-radius:50%;
+    background: var(--ink-soft); border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+    font-size:18px; color:#9a8ea6;
+    z-index:40; cursor:pointer;
+  }
+
+  .admin-section{ margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
+  .admin-section h3{ font-family:'Fraunces',serif; font-size:17px; margin:0 0 10px; }
+  .contestant-row{
+    display:flex; align-items:center; gap:12px;
+    padding:10px 0; border-bottom:1px solid var(--line);
+  }
+  .contestant-row .thumb{
+    width:48px; height:48px; border-radius:8px; overflow:hidden;
+    background:var(--ink); flex-shrink:0; display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:#7a6f85; border:1px solid var(--line);
+  }
+  .contestant-row .thumb img{ width:100%; height:100%; object-fit:cover; }
+  .contestant-row .num2{ font-family:'Fraunces',serif; font-weight:700; width:26px; }
+  .contestant-row .fileBtn{
+    font-size:12px; padding:8px 10px; border-radius:8px;
+    border:1px solid var(--line); background:transparent; color:var(--bone); cursor:pointer;
+  }
+  .results-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px;}
+  .results-row .bar{ flex:1; height:8px; border-radius:4px; background:var(--ink); overflow:hidden; }
+  .results-row .bar span{ display:block; height:100%; background:var(--pumpkin); }
+  .toast{
+    position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    background: var(--ink-soft); border:1px solid var(--line); color:var(--bone);
+    padding:10px 16px; border-radius:10px; font-size:13px; z-index:60;
+    opacity:0; pointer-events:none; transition:opacity .25s ease;
+    max-width:88vw; text-align:center;
+  }
+  .toast.show{ opacity:1; }
+  .hidden{ display:none !important; }
+  .setup-note{
+    margin-top:18px; padding:12px 14px; border-radius:var(--radius);
+    border:1px dashed var(--pumpkin); background: rgba(226,103,42,0.08);
+    font-size:13px; color:var(--bone); line-height:1.5;
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="kicker">Halloween 🎃</div>
+    <h1 id="eventTitle">Concorso Miglior Costume</h1>
+    <div class="sub">Ogni partecipante ha un numero. Sfoglia i costumi e, quando la votazione sarà aperta, vota il tuo preferito con un tocco.</div>
+    <div class="status" id="statusBar">
+      <span class="dot closed" id="statusDot"></span>
+      <span id="statusText">Caricamento…</span>
+    </div>
+  </header>
+
+  <div class="grid" id="gallery">
+    <div class="empty">Caricamento costumi…</div>
+  </div>
+</div>
+
+<div class="gear" id="gearBtn" title="Area organizzatori">⚙</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="overlay hidden" id="voteOverlay">
+  <div class="sheet">
+    <h2 id="voteTitle">Confermi il voto?</h2>
+    <p id="voteText"></p>
+    <div class="row">
+      <button class="btn" id="voteCancel">Annulla</button>
+      <button class="btn primary" id="voteConfirm">Conferma voto</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="pinOverlay">
+  <div class="sheet">
+    <h2>Area organizzatori</h2>
+    <p>Inserisci il PIN per gestire l'evento.</p>
+    <input type="password" id="pinInput" placeholder="PIN" inputmode="numeric">
+    <div class="row">
+      <button class="btn" id="pinCancel">Annulla</button>
+      <button class="btn primary" id="pinConfirm">Entra</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay hidden" id="adminOverlay">
+  <div class="sheet" style="max-width:560px;">
+    <h2>Pannello organizzatori</h2>
+    <p>Gestisci l'evento, carica le foto e apri la votazione quando sei pronto.</p>
+
+    <div class="setup-note" id="apiWarning">
+      ⚠️ Nessun indirizzo dell'API impostato. Apri <code>index.html</code>, cerca <code>API_URL</code> vicino all'inizio dello script e incolla lì l'URL del tuo Web App di Google Apps Script (vedi ISTRUZIONI-SETUP.md).
+    </div>
+
+    <label class="field">Nome evento</label>
+    <input type="text" id="cfgName">
+
+    <label class="field">Numero totale di partecipanti</label>
+    <input type="text" inputmode="numeric" pattern="[0-9]*" id="cfgTotal" placeholder="es. 60">
+
+    <div class="row">
+      <button class="btn primary" id="cfgSave">Salva impostazioni</button>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="toggleVoting">Apri / chiudi votazione</button>
+    </div>
+
+    <div class="admin-section">
+      <h3>Foto dei costumi</h3>
+      <div id="contestantList"></div>
+    </div>
+
+    <div class="admin-section">
+      <h3>Risultati in tempo reale</h3>
+      <div id="resultsList"></div>
+      <div class="row">
+        <button class="btn" id="refreshResults">Aggiorna risultati</button>
+      </div>
+    </div>
+
+    <div class="admin-section">
+      <button class="btn danger" id="resetVotes" style="width:100%;">Azzera tutti i voti</button>
+    </div>
+
+    <div class="row">
+      <button class="btn" id="adminClose" style="width:100%;">Chiudi pannello</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================================
+   CONFIGURAZIONE — modifica solo questa riga dopo aver pubblicato lo script
+   Google Apps Script (vedi ISTRUZIONI-SETUP.md). Incolla l'URL del Web App,
+   che finisce con /exec
+   ========================================================================= */
+const API_URL = "https://script.google.com/macros/s/AKfycbwMWCQNDas9pHzaEvekAAm_7CSLD2TRpeK2UWk_wUIm2dQSGy3CCMyvbMpGv4Vw4P5p/exec";
+
+const ADMIN_PIN = "3110"; // 31/10 — cambialo se vuoi
+const REFRESH_MS = 8000;  // ogni quanto la pagina ricontrolla lo stato
+
+let state = { eventName: "Concorso Miglior Costume", total: 0, votingOpen: false, contestants: {}, votes: {} };
+let myVote = null; // number del costume votato da questo browser, o null
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+function apiConfigured(){
+  return API_URL && API_URL.indexOf('http') === 0;
+}
+
+async function apiGet(){
+  if(!apiConfigured()) return null;
+  try{
+    const res = await fetch(API_URL, { method:'GET' });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  }catch(e){
+    console.error('apiGet failed', e);
+    return null;
+  }
+}
+
+async function apiPost(payload){
+  if(!apiConfigured()){ toast('URL del backend non configurato.'); return null; }
+  try{
+    const res = await fetch(API_URL, {
+      method:'POST',
+      // text/plain evita la richiesta preflight che Apps Script non gestisce bene
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok) throw new Error('HTTP ' + res.status);
+    return await res.json();
+  }catch(e){
+    console.error('apiPost failed', e);
+    toast('Errore di connessione al backend. Riprova tra qualche secondo.');
+    return null;
+  }
+}
+
+function loadMyVoteLocal(){
+  const raw = localStorage.getItem('costume-my-vote');
+  myVote = raw ? parseInt(raw, 10) : null;
+}
+function saveMyVoteLocal(n){
+  localStorage.setItem('costume-my-vote', String(n));
+  myVote = n;
+}
+
+async function loadState(){
+  const data = await apiGet();
+  if(data){
+    state = Object.assign({eventName:"Concorso Miglior Costume", total:0, votingOpen:false, contestants:{}, votes:{}}, data);
+  }
+  document.getElementById('eventTitle').textContent = state.eventName || "Concorso Miglior Costume";
+}
+
+function renderStatus(){
+  const dot = document.getElementById('statusDot');
+  const text = document.getElementById('statusText');
+  const bar = document.getElementById('statusBar');
+  bar.classList.remove('voted');
+  if(!apiConfigured()){
+    dot.className = 'dot closed';
+    text.textContent = 'Backend non configurato — vedi il pannello organizzatori.';
+    return;
+  }
+  if(myVote){
+    dot.className = 'dot open';
+    text.textContent = `Hai votato il costume nº ${myVote}. Grazie per aver partecipato!`;
+    bar.classList.add('voted');
+  } else if(state.votingOpen){
+    dot.className = 'dot open';
+    text.textContent = 'Votazione aperta — tocca il costume che preferisci.';
+  } else {
+    dot.className = 'dot closed';
+    text.textContent = 'La votazione non è ancora aperta. Puoi sfogliare i costumi nel frattempo.';
+  }
+}
+
+function renderGallery(){
+  const gallery = document.getElementById('gallery');
+  if(!state.total || state.total < 1){
+    gallery.innerHTML = '<div class="empty">I costumi verranno mostrati qui appena l&#39;organizzatore avrà impostato i partecipanti.</div>';
+    return;
+  }
+  gallery.innerHTML = '';
+  for(let n=1; n<=state.total; n++){
+    const photo = (state.contestants && state.contestants[String(n)]) || null;
+
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.style.order = n; // ordine sempre garantito, indipendentemente dai dati arrivati
+    const isMine = myVote === n;
+    if(isMine) card.classList.add('mine');
+    const canVote = state.votingOpen && !myVote;
+    if(canVote) card.classList.add('votable');
+
+    card.innerHTML = `
+      <div class="num">${n}</div>
+      ${photo ? `<img src="${photo}" alt="Costume ${n}" onerror="this.parentElement.querySelector('.num').insertAdjacentHTML('afterend', '<div class=&quot;noimg&quot;>Foto non disponibile</div>'); this.remove();">` : `<div class="noimg">Foto non ancora caricata</div>`}
+      ${isMine ? '<div class="mine-badge">Il tuo voto</div>' : ''}
+    `;
+    if(canVote){
+      card.addEventListener('click', ()=> openVoteConfirm(n));
+    }
+    gallery.appendChild(card);
+  }
+}
+
+function openVoteConfirm(n){
+  document.getElementById('voteText').textContent = `Stai per votare il costume numero ${n}. Potrai votare una sola volta da questo dispositivo.`;
+  document.getElementById('voteOverlay').classList.remove('hidden');
+  document.getElementById('voteConfirm').onclick = async ()=>{
+    document.getElementById('voteOverlay').classList.add('hidden');
+    await castVote(n);
+  };
+}
+document.getElementById('voteCancel').onclick = ()=> document.getElementById('voteOverlay').classList.add('hidden');
+
+async function castVote(n){
+  if(myVote){ toast('Hai già votato.'); return; }
+  saveMyVoteLocal(n); // blocco locale subito, per evitare doppi tap
+  const result = await apiPost({ action:'vote', number: n });
+  if(!result || !result.ok){
+    toast('Errore nel registrare il voto. Riprova.');
+    localStorage.removeItem('costume-my-vote');
+    myVote = null;
+    return;
+  }
+  toast('Voto registrato. Grazie!');
+  lastGallerySignature = null; // forza il ridisegno per mostrare subito il voto
+  await refreshAll();
+}
+
+let lastGallerySignature = null;
+
+async function refreshAll(){
+  await loadState();
+  renderStatus();
+  if(document.getElementById('adminOverlay').classList.contains('hidden')){
+    const signature = JSON.stringify({
+      total: state.total,
+      votingOpen: state.votingOpen,
+      contestants: state.contestants,
+      myVote: myVote
+    });
+    if(signature !== lastGallerySignature){
+      lastGallerySignature = signature;
+      renderGallery();
+    }
+  }
+}
+
+let pollingStarted = false;
+async function init(){
+  document.getElementById('apiWarning').classList.toggle('hidden', apiConfigured());
+  loadMyVoteLocal();
+  await refreshAll();
+  if(!pollingStarted){
+    pollingStarted = true;
+    setInterval(refreshAll, REFRESH_MS);
+  }
+}
+init();
+
+/* ---------- ADMIN ---------- */
+let adminUnlocked = false;
+
+document.getElementById('gearBtn').onclick = ()=>{
+  if(adminUnlocked){ openAdminPanel(); }
+  else { document.getElementById('pinOverlay').classList.remove('hidden'); }
+};
+document.getElementById('pinCancel').onclick = ()=> document.getElementById('pinOverlay').classList.add('hidden');
+document.getElementById('pinConfirm').onclick = ()=>{
+  const val = document.getElementById('pinInput').value;
+  if(val === ADMIN_PIN){
+    adminUnlocked = true;
+    document.getElementById('pinOverlay').classList.add('hidden');
+    document.getElementById('pinInput').value = '';
+    openAdminPanel();
+  } else {
+    toast('PIN errato.');
+  }
+};
+
+async function openAdminPanel(){
+  document.getElementById('apiWarning').classList.toggle('hidden', apiConfigured());
+  await loadState();
+  document.getElementById('cfgName').value = state.eventName || '';
+  document.getElementById('cfgTotal').value = state.total || '';
+  renderContestantList();
+  renderResults();
+  document.getElementById('adminOverlay').classList.remove('hidden');
+}
+document.getElementById('adminClose').onclick = async ()=>{
+  document.getElementById('adminOverlay').classList.add('hidden');
+  lastGallerySignature = null; // il pannello admin potrebbe aver cambiato dati
+  await refreshAll();
+};
+
+document.getElementById('cfgSave').onclick = async ()=>{
+  const btn = document.getElementById('cfgSave');
+  const name = document.getElementById('cfgName').value.trim() || 'Concorso Miglior Costume';
+  const rawTotal = document.getElementById('cfgTotal').value.replace(/[^0-9]/g, '');
+  const parsedTotal = parseInt(rawTotal, 10);
+
+  if(!rawTotal || isNaN(parsedTotal) || parsedTotal < 1){
+    toast('Inserisci un numero valido di partecipanti (es. 60).');
+    return;
+  }
+  const total = Math.min(200, parsedTotal);
+
+  btn.disabled = true; btn.textContent = 'Salvataggio…';
+  const result = await apiPost({ action:'saveConfig', eventName:name, total:total, votingOpen: !!state.votingOpen });
+  btn.disabled = false; btn.textContent = 'Salva impostazioni';
+
+  if(result && result.ok){
+    state.eventName = name;
+    state.total = total;
+    document.getElementById('cfgTotal').value = total;
+    toast(`Impostazioni salvate: ${total} partecipanti.`);
+    renderContestantList();
+  } else {
+    toast('Salvataggio non riuscito. Controlla la connessione o l\'URL del backend.');
+  }
+};
+
+document.getElementById('toggleVoting').onclick = async ()=>{
+  const newState = !state.votingOpen;
+  const result = await apiPost({ action:'saveConfig', eventName: state.eventName, total: state.total, votingOpen: newState });
+  if(result && result.ok){
+    state.votingOpen = newState;
+    toast(newState ? 'Votazione aperta.' : 'Votazione chiusa.');
+  } else {
+    toast('Operazione non riuscita. Riprova.');
+  }
+};
+
+document.getElementById('resetVotes').onclick = async ()=>{
+  if(!confirm("Azzerare tutti i voti? L'operazione non è reversibile.")) return;
+  const result = await apiPost({ action:'resetVotes' });
+  if(result && result.ok){
+    state.votes = {};
+    toast('Voti azzerati. Nota: chi ha già votato dal proprio dispositivo resterà segnato come "ha votato" su quel dispositivo.');
+    renderResults();
+  } else {
+    toast('Operazione non riuscita. Riprova.');
+  }
+};
+
+document.getElementById('refreshResults').onclick = async ()=>{
+  await loadState();
+  renderResults();
+};
+
+function renderContestantList(){
+  const list = document.getElementById('contestantList');
+  list.innerHTML = '';
+  if(!state.total){ list.innerHTML = '<p style="color:#a99bb5;font-size:13px;">Imposta prima il numero di partecipanti.</p>'; return; }
+  for(let n=1; n<=state.total; n++){
+    const photo = state.contestants ? state.contestants[String(n)] : null;
+
+    const row = document.createElement('div');
+    row.className = 'contestant-row';
+    row.innerHTML = `
+      <div class="num2">${n}</div>
+      <div class="thumb" id="thumb-${n}">${photo ? `<img src="${photo}">` : 'nessuna'}</div>
+      <input type="file" accept="image/*" capture="environment" id="file-${n}" style="display:none;">
+      <button class="fileBtn" id="btn-${n}">Carica foto</button>
+    `;
+    list.appendChild(row);
+    document.getElementById('btn-'+n).onclick = ()=> document.getElementById('file-'+n).click();
+    document.getElementById('file-'+n).onchange = (e)=> handlePhotoUpload(e, n);
+  }
+}
+
+// Un cella di Google Sheet regge al massimo 50.000 caratteri: comprimiamo
+// l'immagine finché il base64 risultante sta comodamente sotto quel limite.
+const MAX_DATAURL_LENGTH = 42000;
+
+function compressImage(img, maxWidth, quality){
+  const scale = Math.min(1, maxWidth / img.width);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.round(img.width * scale);
+  canvas.height = Math.round(img.height * scale);
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL('image/jpeg', quality);
+}
+
+function handlePhotoUpload(e, n){
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = (ev)=>{
+    const img = new Image();
+    img.onload = async ()=>{
+      const attempts = [
+        [700, 0.65], [600, 0.55], [500, 0.45], [400, 0.35], [320, 0.3]
+      ];
+      let dataUrl = null;
+      for(const [w, q] of attempts){
+        dataUrl = compressImage(img, w, q);
+        if(dataUrl.length <= MAX_DATAURL_LENGTH) break;
+      }
+      if(dataUrl.length > MAX_DATAURL_LENGTH){
+        toast('Foto troppo pesante anche dopo la compressione: prova con un\'altra immagine.');
+        return;
+      }
+      const result = await apiPost({ action:'savePhoto', number: n, photo: dataUrl });
+      if(result && result.ok){
+        state.contestants[String(n)] = dataUrl;
+        document.getElementById('thumb-'+n).innerHTML = `<img src="${dataUrl}">`;
+        toast(`Foto caricata per il numero ${n}.`);
+      } else {
+        toast('Errore nel caricare la foto, riprova.');
+      }
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderResults(){
+  const list = document.getElementById('resultsList');
+  list.innerHTML = '';
+  if(!state.total){ return; }
+  const counts = [];
+  let max = 1;
+  for(let n=1; n<=state.total; n++){
+    const c = (state.votes && state.votes[String(n)]) || 0;
+    counts.push({n, c});
+    if(c > max) max = c;
+  }
+  counts.sort((a,b)=> b.c - a.c);
+  counts.forEach(({n,c})=>{
+    const row = document.createElement('div');
+    row.className = 'results-row';
+    row.innerHTML = `
+      <div style="width:26px;font-weight:600;">${n}</div>
+      <div class="bar"><span style="width:${(c/max*100)}%;"></span></div>
+      <div style="width:34px;text-align:right;">${c}</div>
+    `;
+    list.appendChild(row);
+  });
+}
+</script>
+
+</body>
+</html>
