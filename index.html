@@ -374,6 +374,12 @@
 
     <div class="admin-section">
       <button class="btn danger" id="resetVotes" style="width:100%;">Azzera tutti i voti</button>
+      <p style="font-size:12px; color:#7f9690; margin:8px 0 0;">Mantiene foto e impostazioni, azzera solo i conteggi voti.</p>
+    </div>
+
+    <div class="admin-section">
+      <button class="btn danger" id="resetAll" style="width:100%;">Reset totale — ricomincia da zero</button>
+      <p style="font-size:12px; color:#7f9690; margin:8px 0 0;">Cancella foto, voti, impostazioni e sblocca il voto su TUTTI i dispositivi (anche quelli già votati). Usalo solo se vuoi davvero ripartire da capo.</p>
     </div>
 
     <div class="row">
@@ -388,12 +394,12 @@
    Google Apps Script (vedi ISTRUZIONI-SETUP.md). Incolla l'URL del Web App,
    che finisce con /exec
    ========================================================================= */
-const API_URL = "https://script.google.com/macros/s/AKfycbxr-yUOhyCGhjOwviukH2j4QAclH1A3QhTifW8Hs10ZjL6bYk4bASAP7lJG6oDmW-hQ/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbxNlxhB4oqtfi1MdKCqFd_AHxDXqFVNOBCPSgxCJDbzyjJcW_SqJRaKF85Hat4OZvIR/exec";
 
 const ADMIN_PIN = "3110"; // 31/10 — cambialo se vuoi
 const REFRESH_MS = 8000;  // ogni quanto la pagina ricontrolla lo stato
 
-let state = { eventName: "Concorso Miglior Costume", total: 0, phase: "pending", contestants: {}, votes: {} };
+let state = { eventName: "Concorso Miglior Costume", total: 0, phase: "pending", sessionId: "", contestants: {}, votes: {} };
 let myVote = null; // number del costume votato da questo browser, o null
 
 function toast(msg){
@@ -438,20 +444,30 @@ async function apiPost(payload){
 }
 
 function loadMyVoteLocal(){
-  const raw = localStorage.getItem('costume-my-vote');
-  myVote = raw ? parseInt(raw, 10) : null;
+  const storedNum = localStorage.getItem('costume-my-vote');
+  const storedSession = localStorage.getItem('costume-vote-session') || '';
+  const currentSession = state.sessionId || '';
+  if(storedNum && storedSession === currentSession){
+    myVote = parseInt(storedNum, 10);
+  } else {
+    myVote = null;
+    localStorage.removeItem('costume-my-vote');
+    localStorage.removeItem('costume-vote-session');
+  }
 }
 function saveMyVoteLocal(n){
   localStorage.setItem('costume-my-vote', String(n));
+  localStorage.setItem('costume-vote-session', state.sessionId || '');
   myVote = n;
 }
 
 async function loadState(){
   const data = await apiGet();
   if(data){
-    state = Object.assign({eventName:"Concorso Miglior Costume", total:0, phase:"pending", contestants:{}, votes:{}}, data);
+    state = Object.assign({eventName:"Concorso Miglior Costume", total:0, phase:"pending", sessionId:"", contestants:{}, votes:{}}, data);
   }
   document.getElementById('eventTitle').textContent = state.eventName || "Concorso Miglior Costume";
+  loadMyVoteLocal(); // riverifica lo sblocco locale ogni volta che arriva lo stato aggiornato
 }
 
 function renderStatus(){
@@ -665,7 +681,6 @@ async function refreshAll(){
 let pollingStarted = false;
 async function init(){
   document.getElementById('apiWarning').classList.toggle('hidden', apiConfigured());
-  loadMyVoteLocal();
   await refreshAll();
   if(!pollingStarted){
     pollingStarted = true;
@@ -730,7 +745,7 @@ document.getElementById('cfgSave').onclick = async ()=>{
   const total = Math.min(200, parsedTotal);
 
   btn.disabled = true; btn.textContent = 'Salvataggio…';
-  const result = await apiPost({ action:'saveConfig', eventName:name, total:total, phase: state.phase || 'pending' });
+  const result = await apiPost({ action:'saveConfig', eventName:name, total:total, phase: state.phase || 'pending', sessionId: state.sessionId || '' });
   btn.disabled = false; btn.textContent = 'Salva impostazioni';
 
   if(result && result.ok){
@@ -757,7 +772,7 @@ document.getElementById('toggleVoting').onclick = async ()=>{
   }
   if(confirmMsg && !confirm(confirmMsg)) return;
 
-  const result = await apiPost({ action:'saveConfig', eventName: state.eventName, total: state.total, phase: nextPhase });
+  const result = await apiPost({ action:'saveConfig', eventName: state.eventName, total: state.total, phase: nextPhase, sessionId: state.sessionId || '' });
   if(result && result.ok){
     state.phase = nextPhase;
     updateToggleButtonLabel();
@@ -777,6 +792,38 @@ document.getElementById('resetVotes').onclick = async ()=>{
     renderResults();
   } else {
     toast('Operazione non riuscita. Riprova.');
+  }
+};
+
+document.getElementById('resetAll').onclick = async ()=>{
+  const sure = confirm(
+    "Reset TOTALE: verranno cancellate tutte le foto, tutti i voti e le impostazioni. " +
+    "Il voto si sbloccherà su tutti i dispositivi, anche per chi ha già votato. " +
+    "Questa azione non è reversibile. Vuoi continuare?"
+  );
+  if(!sure) return;
+  const confirmAgain = confirm("Sei sicuro? Ricontrolla: è l'ultima conferma prima di azzerare tutto l'evento.");
+  if(!confirmAgain) return;
+
+  const btn = document.getElementById('resetAll');
+  btn.disabled = true; btn.textContent = 'Reset in corso…';
+  const result = await apiPost({ action:'resetAll' });
+  btn.disabled = false; btn.textContent = 'Reset totale — ricomincia da zero';
+
+  if(result && result.ok){
+    lastGallerySignature = null;
+    confettiPlayed = false;
+    localStorage.removeItem('costume-my-vote');
+    localStorage.removeItem('costume-vote-session');
+    await loadState(); // riprende anche il nuovo sessionId
+    document.getElementById('cfgName').value = state.eventName || '';
+    document.getElementById('cfgTotal').value = state.total || '';
+    updateToggleButtonLabel();
+    renderContestantList();
+    renderResults();
+    toast('Evento azzerato: si riparte da zero per tutti.');
+  } else {
+    toast('Reset non riuscito. Riprova.');
   }
 };
 
