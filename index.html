@@ -5,24 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
 <title>Miglior Costume — Halloween</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --ink:#161119;
-    --ink-soft:#231b28;
-    --plum:#3B2352;
-    --plum-soft:#4d2f68;
-    --pumpkin:#E2672A;
-    --pumpkin-soft:#f08a52;
-    --bone:#F1E9DC;
-    --moss:#5C6B4B;
-    --line: rgba(241,233,220,0.14);
+    --ink:#0a1512;
+    --ink-soft:#12211d;
+    --teal-deep:#123832;
+    --teal-soft:#1f5a4e;
+    --accent:#3ED9B4;
+    --accent-soft:#8fe8d3;
+    --bone:#EDEAE0;
+    --moss:#4b6b57;
+    --line: rgba(237,234,224,0.14);
     --radius: 14px;
   }
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{
-    background: radial-gradient(120% 140% at 15% -10%, var(--plum-soft) 0%, var(--ink) 45%), var(--ink);
+    background: radial-gradient(120% 140% at 15% -10%, var(--teal-soft) 0%, var(--ink) 45%), var(--ink);
     color: var(--bone);
     font-family:'Work Sans', sans-serif;
     min-height:100vh;
@@ -30,17 +30,25 @@
   }
   .wrap{ max-width:640px; margin:0 auto; padding:28px 20px 40px; }
 
-  header.top{ text-align:left; margin-bottom:22px; }
-  .kicker{ font-size:13px; color:var(--pumpkin-soft); letter-spacing:0.02em; margin-bottom:6px; }
+  header.top{ text-align:center; margin-bottom:22px; }
+  .logo-wrap{ margin-bottom:14px; display:flex; justify-content:center; }
+  .event-logo{
+    width:180px; max-width:60%; height:auto; display:block;
+    border-radius:12px;
+    filter: drop-shadow(0 6px 24px rgba(62,217,180,0.25));
+  }
+  .kicker{ font-size:13px; color:var(--accent-soft); letter-spacing:0.08em; margin-bottom:6px; text-transform:uppercase; }
   h1{
-    font-family:'Fraunces', serif;
-    font-weight:900;
-    font-size:clamp(30px, 8vw, 42px);
+    font-family:'Bebas Neue', sans-serif;
+    font-weight:400;
+    letter-spacing:0.02em;
+    text-transform:uppercase;
+    font-size:clamp(26px, 7vw, 36px);
     line-height:1.05;
     margin:0 0 10px;
     color:var(--bone);
   }
-  .sub{ font-size:15px; color:#c9bfd6; line-height:1.5; max-width:46ch; }
+  .sub{ font-size:15px; color:#a9c2ba; line-height:1.5; max-width:46ch; margin-left:auto; margin-right:auto; }
 
   .status{
     display:flex; align-items:center; gap:10px;
@@ -52,7 +60,7 @@
   }
   .dot{ width:9px; height:9px; border-radius:50%; flex-shrink:0; }
   .dot.open{ background:#7CB86B; box-shadow:0 0 0 4px rgba(124,184,107,0.18);}
-  .dot.closed{ background:var(--pumpkin); box-shadow:0 0 0 4px rgba(226,103,42,0.18);}
+  .dot.closed{ background:var(--accent); box-shadow:0 0 0 4px rgba(62,217,180,0.18);}
   .status.voted{ border-color: rgba(124,184,107,0.4); }
 
   .grid{
@@ -72,29 +80,43 @@
     aspect-ratio: 3/4;
     cursor:default;
   }
-  .card.votable{ cursor:pointer; }
+  .card.votable{
+    cursor:pointer;
+    border-color: rgba(62,217,180,0.35);
+    animation: votableGlow 2.6s ease-in-out infinite;
+  }
+  @keyframes votableGlow{
+    0%, 100% { box-shadow: 0 0 0 0 rgba(62,217,180,0); }
+    50% { box-shadow: 0 0 16px 2px rgba(62,217,180,0.28); }
+  }
   .card img{ width:100%; height:100%; object-fit:cover; display:block; }
   .card .noimg{
     width:100%; height:100%;
     display:flex; align-items:center; justify-content:center;
-    color:#7a6f85; font-size:13px; text-align:center; padding:10px;
+    color:#5c7268; font-size:13px; text-align:center; padding:10px;
   }
   .num{
-    position:absolute; top:8px; left:8px;
-    background: rgba(22,17,25,0.8);
-    border:1px solid var(--line);
-    color:var(--bone);
-    font-family:'Fraunces', serif; font-weight:700;
+    position:absolute; top:10px; left:10px;
+    background: var(--bone);
+    color: var(--ink);
+    font-family:'Bebas Neue', sans-serif; letter-spacing:0.02em;
     font-size:15px;
-    width:30px; height:30px;
-    border-radius:50%;
-    display:flex; align-items:center; justify-content:center;
+    padding:3px 10px 3px 9px;
+    border-radius:3px 9px 9px 3px;
+    transform: rotate(-4deg);
+    box-shadow: 1px 2px 0 rgba(0,0,0,0.35);
     z-index:2;
   }
-  .card.mine{ outline:3px solid var(--pumpkin); outline-offset:-3px; }
+  .num::before{
+    content:'';
+    position:absolute; left:-2px; top:50%; transform:translateY(-50%);
+    width:5px; height:5px; border-radius:50%;
+    background:var(--ink); border:1px solid var(--bone);
+  }
+  .card.mine{ outline:3px solid var(--accent); outline-offset:-3px; }
   .mine-badge{
     position:absolute; bottom:8px; right:8px;
-    background: var(--pumpkin);
+    background: var(--accent);
     color:var(--ink);
     font-size:11px; font-weight:700;
     padding:3px 8px; border-radius:20px;
@@ -104,7 +126,7 @@
     grid-column: 1 / -1;
     text-align:center;
     padding:40px 20px;
-    color:#a99bb5;
+    color:#7f9690;
     font-size:14px;
     border:1px dashed var(--line);
     border-radius:var(--radius);
@@ -127,8 +149,8 @@
     max-height:85vh; overflow-y:auto;
   }
   @media(min-width:600px){ .sheet{ border-radius:20px; } }
-  .sheet h2{ font-family:'Fraunces',serif; font-weight:700; font-size:22px; margin:0 0 6px; }
-  .sheet p{ color:#c9bfd6; font-size:14px; line-height:1.5; margin:0 0 18px;}
+  .sheet h2{ font-family:'Bebas Neue', sans-serif; text-transform:uppercase; letter-spacing:0.02em; font-size:24px; margin:0 0 6px; }
+  .sheet p{ color:#a9c2ba; font-size:14px; line-height:1.5; margin:0 0 18px;}
   .row{ display:flex; gap:10px; margin-top:14px; }
   .btn{
     flex:1;
@@ -142,7 +164,7 @@
     font-size:14px;
     cursor:pointer;
   }
-  .btn.primary{ background:var(--pumpkin); color:var(--ink); border-color:var(--pumpkin); }
+  .btn.primary{ background:var(--accent); color:var(--ink); border-color:var(--accent); }
   .btn.danger{ background:transparent; border-color:#8a3b3b; color:#e08a8a; }
   .btn:active{ transform: scale(0.98); }
   .btn:disabled{ opacity:0.5; cursor:not-allowed; }
@@ -157,19 +179,19 @@
     font-size:15px;
     margin-top:6px;
   }
-  label.field{ display:block; font-size:13px; color:#c9bfd6; margin-top:16px; }
+  label.field{ display:block; font-size:13px; color:#a9c2ba; margin-top:16px; }
 
   .gear{
     position:fixed; bottom:16px; right:16px;
     width:44px; height:44px; border-radius:50%;
     background: var(--ink-soft); border:1px solid var(--line);
     display:flex; align-items:center; justify-content:center;
-    font-size:18px; color:#9a8ea6;
+    font-size:18px; color:#7f9690;
     z-index:40; cursor:pointer;
   }
 
   .admin-section{ margin-top:22px; padding-top:18px; border-top:1px solid var(--line); }
-  .admin-section h3{ font-family:'Fraunces',serif; font-size:17px; margin:0 0 10px; }
+  .admin-section h3{ font-family:'Bebas Neue', sans-serif; text-transform:uppercase; letter-spacing:0.02em; font-size:18px; margin:0 0 10px; }
   .contestant-row{
     display:flex; align-items:center; gap:12px;
     padding:10px 0; border-bottom:1px solid var(--line);
@@ -177,34 +199,35 @@
   .contestant-row .thumb{
     width:48px; height:48px; border-radius:8px; overflow:hidden;
     background:var(--ink); flex-shrink:0; display:flex; align-items:center; justify-content:center;
-    font-size:11px; color:#7a6f85; border:1px solid var(--line);
+    font-size:11px; color:#5c7268; border:1px solid var(--line);
   }
   .contestant-row .thumb img{ width:100%; height:100%; object-fit:cover; }
-  .contestant-row .num2{ font-family:'Fraunces',serif; font-weight:700; width:26px; }
+  .contestant-row .num2{ font-family:'Bebas Neue', sans-serif; font-weight:700; width:26px; }
   .contestant-row .fileBtn{
     font-size:12px; padding:8px 10px; border-radius:8px;
     border:1px solid var(--line); background:transparent; color:var(--bone); cursor:pointer;
   }
   .results-row{ display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid var(--line); font-size:14px;}
   .results-row .bar{ flex:1; height:8px; border-radius:4px; background:var(--ink); overflow:hidden; }
-  .results-row .bar span{ display:block; height:100%; background:var(--pumpkin); }
+  .results-row .bar span{ display:block; height:100%; background:var(--accent); }
   .toast{
-    position:fixed; top:16px; left:50%; transform:translateX(-50%);
+    position:fixed; top:16px; left:50%;
+    transform:translateX(-50%) scale(0.9);
     background: var(--ink-soft); border:1px solid var(--line); color:var(--bone);
     padding:10px 16px; border-radius:10px; font-size:13px; z-index:60;
-    opacity:0; pointer-events:none; transition:opacity .25s ease;
+    opacity:0; pointer-events:none; transition:opacity .25s ease, transform .25s cubic-bezier(.34,1.56,.64,1);
     max-width:88vw; text-align:center;
   }
-  .toast.show{ opacity:1; }
+  .toast.show{ opacity:1; transform:translateX(-50%) scale(1); }
   .hidden{ display:none !important; }
 
   /* --- Podio e classifica pubblica --- */
   .results-public{ margin-top:24px; }
   .podium-title{
-    font-family:'Fraunces', serif; font-weight:700; font-size:19px;
+    font-family:'Bebas Neue', sans-serif; text-transform:uppercase; letter-spacing:0.02em; font-size:22px;
     margin:0 0 4px;
   }
-  .podium-sub{ font-size:13px; color:#c9bfd6; margin:0 0 20px; }
+  .podium-sub{ font-size:13px; color:#a9c2ba; margin:0 0 20px; }
   .podium{
     display:flex; align-items:flex-end; justify-content:center; gap:10px;
     margin-bottom:28px;
@@ -218,7 +241,7 @@
   .podium-slot .photo-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
   .podium-slot .photo-wrap .noimg{
     width:100%; height:100%; display:flex; align-items:center; justify-content:center;
-    color:#7a6f85; font-size:11px; text-align:center; padding:6px;
+    color:#5c7268; font-size:11px; text-align:center; padding:6px;
   }
   .podium-slot.gold .photo-wrap{ border-color:#E8C468; box-shadow:0 0 0 3px rgba(232,196,104,0.18); }
   .podium-slot.silver .photo-wrap{ border-color:#C9D0D9; box-shadow:0 0 0 3px rgba(201,208,217,0.16); }
@@ -227,28 +250,40 @@
   .podium-slot.silver{ order:1; margin-bottom:16px; }
   .podium-slot.bronze{ order:3; margin-bottom:24px; }
   .medal{
-    font-family:'Fraunces', serif; font-weight:900; font-size:13px;
+    font-family:'Bebas Neue', sans-serif; font-weight:900; font-size:13px;
     margin-top:10px; margin-bottom:2px;
   }
   .podium-slot.gold .medal{ color:#E8C468; }
   .podium-slot.silver .medal{ color:#C9D0D9; }
   .podium-slot.bronze .medal{ color:#D08A5C; }
-  .podium-slot .pnum{ font-family:'Fraunces',serif; font-weight:700; font-size:20px; }
-  .podium-slot .pvotes{ font-size:12px; color:#c9bfd6; }
+  .podium-slot .pnum{ font-family:'Bebas Neue', sans-serif; font-weight:700; font-size:20px; }
+  .podium-slot .pvotes{ font-size:12px; color:#a9c2ba; }
 
   .ranking{ border-top:1px solid var(--line); padding-top:14px; }
   .ranking-row{
     display:flex; align-items:center; gap:12px;
     padding:9px 0; border-bottom:1px solid var(--line); font-size:14px;
   }
-  .ranking-row .rpos{ width:22px; color:#a99bb5; font-size:13px; }
-  .ranking-row .rnum{ font-family:'Fraunces',serif; font-weight:700; width:26px; }
+  .ranking-row .rpos{ width:22px; color:#7f9690; font-size:13px; }
+  .ranking-row .rnum{ font-family:'Bebas Neue', sans-serif; font-weight:700; width:26px; }
   .ranking-row .rbar{ flex:1; height:7px; border-radius:4px; background:var(--ink-soft); overflow:hidden; }
-  .ranking-row .rbar span{ display:block; height:100%; background:var(--pumpkin); }
-  .ranking-row .rcount{ width:30px; text-align:right; color:#c9bfd6; font-size:13px; }
+  .ranking-row .rbar span{ display:block; height:100%; background:var(--accent); }
+  .ranking-row .rcount{ width:30px; text-align:right; color:#a9c2ba; font-size:13px; }
+
+  /* --- Coriandoli alla rivelazione del podio --- */
+  #confettiLayer{
+    position:fixed; inset:0; pointer-events:none; z-index:70; overflow:hidden;
+  }
+  .confetti-piece{
+    position:absolute; top:-20px; width:8px; height:14px; opacity:0.9;
+    animation-name: confettiFall; animation-timing-function: linear; animation-fill-mode: forwards;
+  }
+  @keyframes confettiFall{
+    to{ transform: translateY(110vh) rotate(540deg); opacity:0.2; }
+  }
   .setup-note{
     margin-top:18px; padding:12px 14px; border-radius:var(--radius);
-    border:1px dashed var(--pumpkin); background: rgba(226,103,42,0.08);
+    border:1px dashed var(--accent); background: rgba(62,217,180,0.08);
     font-size:13px; color:var(--bone); line-height:1.5;
   }
 </style>
@@ -257,6 +292,9 @@
 
 <div class="wrap">
   <header class="top">
+    <div class="logo-wrap">
+      <img src="logo.png" alt="Logo evento Ratsdenstein" class="event-logo">
+    </div>
     <div class="kicker">Halloween 🎃</div>
     <h1 id="eventTitle">Concorso Miglior Costume</h1>
     <div class="sub">Ogni partecipante ha un numero. Sfoglia i costumi e, quando la votazione sarà aperta, vota il tuo preferito con un tocco.</div>
@@ -273,6 +311,7 @@
 <div class="gear" id="gearBtn" title="Area organizzatori">⚙</div>
 
 <div class="toast" id="toast"></div>
+<div id="confettiLayer"></div>
 
 <div class="overlay hidden" id="voteOverlay">
   <div class="sheet">
@@ -515,11 +554,39 @@ function podiumSlotHtml(item, place){
   `;
 }
 
+let confettiPlayed = false;
+function launchConfetti(){
+  if(confettiPlayed) return;
+  confettiPlayed = true;
+  const layer = document.getElementById('confettiLayer');
+  const colors = ['#3ED9B4', '#EDEAE0', '#4b6b57', '#8fe8d3'];
+  for(let i=0; i<40; i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random()*100 + 'vw';
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.animationDuration = (2.2 + Math.random()*1.8) + 's';
+    piece.style.animationDelay = (Math.random()*0.6) + 's';
+    piece.style.transform = `rotate(${Math.random()*360}deg)`;
+    layer.appendChild(piece);
+    setTimeout(()=> piece.remove(), 5000);
+  }
+}
+
 function renderPublicResults(){
   const view = document.getElementById('resultsPublicView');
   if(!state.total){ view.innerHTML = ''; return; }
   const list = rankedList();
   const [first, second, third] = list;
+
+  launchConfetti();
+
+  let gapNote = '';
+  if(first && second){
+    const gap = first.c - second.c;
+    if(gap > 0) gapNote = `<div class="pvotes" style="margin-top:2px;">+${gap} ${gap===1?'voto':'voti'} sul secondo</div>`;
+    else if(gap === 0 && first.c > 0) gapNote = `<div class="pvotes" style="margin-top:2px;">Pareggio con il secondo posto</div>`;
+  }
 
   const podiumHtml = `
     <div class="podium-title">Il podio 🏆</div>
@@ -529,6 +596,7 @@ function renderPublicResults(){
       ${podiumSlotHtml(first, 1)}
       ${podiumSlotHtml(third, 3)}
     </div>
+    ${gapNote ? `<div style="text-align:center; margin-top:-16px; margin-bottom:20px;">${gapNote}</div>` : ''}
   `;
 
   const rankingRows = list.map((item, idx)=> `
@@ -569,7 +637,7 @@ async function castVote(n){
     myVote = null;
     return;
   }
-  toast('Voto registrato. Grazie!');
+  toast('🐀 Voto registrato. Grazie!');
   lastGallerySignature = null; // forza il ridisegno per mostrare subito il voto
   await refreshAll();
 }
@@ -720,7 +788,7 @@ document.getElementById('refreshResults').onclick = async ()=>{
 function renderContestantList(){
   const list = document.getElementById('contestantList');
   list.innerHTML = '';
-  if(!state.total){ list.innerHTML = '<p style="color:#a99bb5;font-size:13px;">Imposta prima il numero di partecipanti.</p>'; return; }
+  if(!state.total){ list.innerHTML = '<p style="color:#7f9690;font-size:13px;">Imposta prima il numero di partecipanti.</p>'; return; }
   for(let n=1; n<=state.total; n++){
     const photo = state.contestants ? state.contestants[String(n)] : null;
 
