@@ -578,6 +578,11 @@ let lastRenderSig = null;
 let confettiPlayed = false;
 let netTrouble = false;
 
+// Scrittura admin in volo (cambio fase o step della premiazione).
+// Finche' e' true il polling NON sovrascrive phase/revealStep, altrimenti
+// il server risponde col valore vecchio e la rivelazione torna indietro.
+let adminWritePending = false;
+
 /* ======================= UTILITY UI ======================= */
 
 function el(id){ return document.getElementById(id); }
@@ -753,10 +758,20 @@ async function pollTick(){
     const versionChanged = light.stateVersion !== state.stateVersion;
     const votesChanged = light.voteRows !== state._voteRows;
 
-    state.phase = light.phase;
-    state.revealStep = light.revealStep;
+    // Una risposta puo' essere partita PRIMA della nostra ultima scrittura
+    // (il backend mette in cache 2 secondi): se porta una versione piu'
+    // vecchia di quella che conosciamo e' obsoleta e va scartata.
+    const obsoleta = light.stateVersion < state.stateVersion;
+
+    if(!adminWritePending && !obsoleta){
+      state.phase = light.phase;
+      state.revealStep = light.revealStep;
+      state.stateVersion = light.stateVersion;
+    }
     state.total = light.total;
     state._voteRows = light.voteRows;
+
+    if(obsoleta){ renderAll(); scheduleNextPoll(); return; }
 
     if(light.sessionId !== state.sessionId){
       state.sessionId = light.sessionId;
@@ -785,8 +800,9 @@ function needsVotes(){
 async function loadFull(){
   const data = await apiGet('full');
   if(!data) return;
+  const fasePrima = state.phase, stepPrima = state.revealStep, verPrima = state.stateVersion;
   state = Object.assign(state, data);
-  state._voteRows = state._voteRows;
+  if(adminWritePending){ state.phase = fasePrima; state.revealStep = stepPrima; state.stateVersion = verPrima; }
   el('eventTitle').textContent = state.eventName || 'Concorso Miglior Costume';
   syncMyVoteFromStorage();
   lastRenderSig = null;
@@ -1430,28 +1446,40 @@ el('toggleVoting').onclick = async ()=>{
   }
   if(msg && !confirm(msg)) return;
 
+  adminWritePending = true;
   try{
-    await apiPostRetry({ action:'saveConfig', phase: next, revealStep: 0 });
+    const res = await apiPostRetry({ action:'saveConfig', phase: next, revealStep: 0 });
+    state.stateVersion = (res && res.stateVersion != null) ? res.stateVersion : state.stateVersion + 1;
     state.phase = next; state.revealStep = 0; confettiPlayed = false;
     updateToggleLabel(); renderTieWarning();
-    lastRenderSig = null; renderAll(); scheduleNextPoll();
+    lastRenderSig = null; renderAll();
     toast(next === 'open' ? 'Votazione aperta.' : 'Votazione chiusa. Usa "Avanti" per condurre la premiazione.', 4000);
   }catch(e){ toast('Operazione non riuscita: ' + e.message); }
+  finally{ adminWritePending = false; scheduleNextPoll(); }
 };
 
 /* ---- Comandi premiazione ---- */
 async function setRevealStep(step){
+  if(adminWritePending) return;
   const clamped = Math.max(0, Math.min(7, step));
   const prev = state.revealStep;
+  adminWritePending = true;
   state.revealStep = clamped;
   if(clamped < 6) confettiPlayed = false;
   lastRenderSig = null; renderAll();
+  const btnN = el('revealNext'), btnB = el('revealBack');
+  const testoN = btnN.textContent;
+  btnN.disabled = true; btnB.disabled = true; btnN.textContent = 'Attendi\u2026';
   try{
-    await apiPostRetry({ action:'setReveal', revealStep: clamped }, 3);
-    scheduleNextPoll();
+    const res = await apiPostRetry({ action:'setReveal', revealStep: clamped }, 3);
+    state.stateVersion = (res && res.stateVersion != null) ? res.stateVersion : state.stateVersion + 1;
   }catch(e){
     state.revealStep = prev; lastRenderSig = null; renderAll();
     toast('Non riesco a sincronizzare lo step: ' + e.message, 4000);
+  }finally{
+    adminWritePending = false;
+    btnN.disabled = false; btnB.disabled = false; btnN.textContent = testoN;
+    scheduleNextPoll();
   }
 }
 el('revealNext').onclick = ()=> setRevealStep(state.revealStep + 1);
