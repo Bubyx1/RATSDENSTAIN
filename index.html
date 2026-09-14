@@ -286,6 +286,140 @@
     border:1px dashed var(--accent); background: rgba(62,217,180,0.08);
     font-size:13px; color:var(--bone); line-height:1.5;
   }
+
+  /* --- Premiazione a step --- */
+  .reveal-stage{
+    min-height:52vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    text-align:center; padding:20px 0 10px;
+  }
+  .reveal-kicker{
+    font-family:'Bebas Neue', sans-serif; text-transform:uppercase;
+    letter-spacing:0.06em; font-size:clamp(26px,7vw,40px);
+    line-height:1.1; margin:0;
+  }
+  .reveal-hint{ font-size:14px; color:#7f9690; margin-top:14px; }
+  .suspense-dots span{
+    display:inline-block; width:9px; height:9px; margin:0 4px; border-radius:50%;
+    background:var(--accent); opacity:0.25;
+    animation: dotPulse 1.4s ease-in-out infinite;
+  }
+  .suspense-dots span:nth-child(2){ animation-delay:.2s; }
+  .suspense-dots span:nth-child(3){ animation-delay:.4s; }
+  @keyframes dotPulse{ 0%,100%{opacity:0.2; transform:scale(.85);} 50%{opacity:1; transform:scale(1.1);} }
+
+  .reveal-card{
+    animation: revealPop .55s cubic-bezier(.2,1.3,.4,1) both;
+    max-width:300px; width:78%;
+  }
+  @keyframes revealPop{
+    from{ opacity:0; transform:scale(.82) translateY(18px); }
+    to{ opacity:1; transform:scale(1) translateY(0); }
+  }
+  .reveal-card .photo-wrap{
+    position:relative; border-radius:16px; overflow:hidden;
+    border:3px solid var(--line); background:var(--ink-soft);
+    aspect-ratio:3/4;
+  }
+  .reveal-card .photo-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .reveal-card .photo-wrap .noimg{
+    width:100%; height:100%; display:flex; align-items:center; justify-content:center;
+    color:#5c7268; font-size:13px; text-align:center; padding:10px;
+  }
+  .reveal-card.gold .photo-wrap{ border-color:#E8C468; box-shadow:0 0 34px rgba(232,196,104,0.35); }
+  .reveal-card.silver .photo-wrap{ border-color:#C9D0D9; box-shadow:0 0 26px rgba(201,208,217,0.28); }
+  .reveal-card.bronze .photo-wrap{ border-color:#D08A5C; box-shadow:0 0 26px rgba(208,138,92,0.28); }
+  .reveal-place{
+    font-family:'Bebas Neue', sans-serif; text-transform:uppercase; letter-spacing:0.04em;
+    font-size:22px; margin-top:16px;
+  }
+  .reveal-card.gold .reveal-place{ color:#E8C468; }
+  .reveal-card.silver .reveal-place{ color:#C9D0D9; }
+  .reveal-card.bronze .reveal-place{ color:#D08A5C; }
+  .reveal-num{ font-family:'Bebas Neue', sans-serif; font-size:30px; line-height:1.1; }
+  .reveal-votes{ font-size:13px; color:#a9c2ba; }
+  .tie-flag{
+    display:inline-block; margin-top:8px; font-size:11px; font-weight:700;
+    padding:3px 9px; border-radius:20px;
+    background:rgba(232,196,104,0.15); color:#E8C468; border:1px solid rgba(232,196,104,0.4);
+  }
+
+  /* Barra comandi admin durante la premiazione */
+  .reveal-bar{
+    position:fixed; bottom:0; left:0; right:0; z-index:45;
+    background:rgba(10,21,18,0.94); border-top:1px solid var(--line);
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    display:flex; gap:10px; align-items:center;
+    backdrop-filter: blur(6px);
+  }
+  .reveal-bar .step-label{
+    font-size:11px; color:#7f9690; white-space:nowrap; min-width:64px;
+  }
+
+  /* --- Lightbox foto grande --- */
+  .lightbox{
+    position:fixed; inset:0; z-index:80;
+    background:rgba(6,12,10,0.94);
+    display:flex; align-items:center; justify-content:center;
+    padding:20px;
+  }
+  .lightbox img{
+    max-width:100%; max-height:82vh; border-radius:12px; display:block;
+    border:1px solid var(--line);
+  }
+  .lightbox .lb-meta{
+    position:absolute; top:18px; left:0; right:0; text-align:center;
+    font-family:'Bebas Neue', sans-serif; font-size:22px; letter-spacing:0.04em;
+  }
+  .lightbox .lb-close{
+    position:absolute; top:14px; right:16px;
+    width:38px; height:38px; border-radius:50%;
+    background:var(--ink-soft); border:1px solid var(--line); color:var(--bone);
+    font-size:18px; cursor:pointer;
+  }
+  .lightbox .lb-spinner{ color:#7f9690; font-size:13px; }
+
+  /* --- Upload: barra di avanzamento per foto --- */
+  .contestant-row{ flex-wrap:wrap; }
+  .up-progress{
+    flex-basis:100%; height:4px; border-radius:3px;
+    background:var(--ink); overflow:hidden; margin-top:8px;
+    display:none;
+  }
+  .up-progress.active{ display:block; }
+  .up-progress i{
+    display:block; height:100%; width:0%;
+    background:var(--accent); transition:width .2s ease;
+  }
+  .up-stage{
+    flex-basis:100%; font-size:11px; color:#7f9690; margin-top:4px; display:none;
+  }
+  .up-stage.active{ display:block; }
+
+  /* --- Stato connessione --- */
+  .net-warn{
+    position:fixed; bottom:70px; left:50%; transform:translateX(-50%);
+    background:#5a2020; border:1px solid #8a3b3b; color:#f0c8c8;
+    padding:8px 14px; border-radius:10px; font-size:12px; z-index:55;
+    max-width:90vw; text-align:center;
+  }
+
+  /* --- Placeholder skeleton per la griglia --- */
+  .card .ph{
+    position:absolute; inset:0;
+    background: linear-gradient(100deg, var(--ink-soft) 20%, #1a2e28 40%, var(--ink-soft) 60%);
+    background-size:220% 100%;
+    animation: shimmer 1.5s linear infinite;
+  }
+  @keyframes shimmer{ from{background-position:120% 0;} to{background-position:-120% 0;} }
+  .card img{ opacity:0; transition:opacity .35s ease; }
+  .card img.loaded{ opacity:1; }
+
+  .tie-warning{
+    margin-top:12px; padding:10px 12px; border-radius:10px;
+    background:rgba(232,196,104,0.1); border:1px solid rgba(232,196,104,0.4);
+    font-size:12px; color:#E8C468; line-height:1.5;
+  }
 </style>
 </head>
 <body>
@@ -297,7 +431,7 @@
     </div>
     <div class="kicker">Halloween 🎃</div>
     <h1 id="eventTitle">Concorso Miglior Costume</h1>
-    <div class="sub">Ogni partecipante ha un numero. Sfoglia i costumi e, quando la votazione sarà aperta, vota il tuo preferito con un tocco.</div>
+    <div class="sub" id="eventSub">Ogni partecipante ha un numero. Sfoglia i costumi e, quando la votazione sarà aperta, vota il tuo preferito con un tocco.</div>
     <div class="status" id="statusBar">
       <span class="dot closed" id="statusDot"></span>
       <span id="statusText">Caricamento…</span>
@@ -305,17 +439,23 @@
   </header>
 
   <div class="grid" id="gallery"></div>
+  <div class="reveal-stage hidden" id="revealView"></div>
   <div class="results-public hidden" id="resultsPublicView"></div>
 </div>
 
 <div class="gear" id="gearBtn" title="Area organizzatori">⚙</div>
-
 <div class="toast" id="toast"></div>
 <div id="confettiLayer"></div>
 
+<div class="reveal-bar hidden" id="revealBar">
+  <span class="step-label" id="revealStepLabel">Step 0/7</span>
+  <button class="btn" id="revealBack">Indietro</button>
+  <button class="btn primary" id="revealNext">Avanti</button>
+</div>
+
 <div class="overlay hidden" id="voteOverlay">
   <div class="sheet">
-    <h2 id="voteTitle">Confermi il voto?</h2>
+    <h2>Confermi il voto?</h2>
     <p id="voteText"></p>
     <div class="row">
       <button class="btn" id="voteCancel">Annulla</button>
@@ -339,10 +479,10 @@
 <div class="overlay hidden" id="adminOverlay">
   <div class="sheet" style="max-width:560px;">
     <h2>Pannello organizzatori</h2>
-    <p>Gestisci l'evento, carica le foto e apri la votazione quando sei pronto.</p>
+    <p>Gestisci l'evento, carica le foto e conduci la premiazione.</p>
 
-    <div class="setup-note" id="apiWarning">
-      ⚠️ Nessun indirizzo dell'API impostato. Apri <code>index.html</code>, cerca <code>API_URL</code> vicino all'inizio dello script e incolla lì l'URL del tuo Web App di Google Apps Script (vedi ISTRUZIONI-SETUP.md).
+    <div class="setup-note hidden" id="apiWarning">
+      ⚠️ Nessun indirizzo dell'API impostato. Apri <code>index.html</code>, cerca <code>API_URL</code> e incolla l'URL del tuo Web App di Google Apps Script.
     </div>
 
     <label class="field">Nome evento</label>
@@ -355,12 +495,17 @@
       <button class="btn primary" id="cfgSave">Salva impostazioni</button>
     </div>
 
-    <div class="row">
-      <button class="btn" id="toggleVoting">Apri votazione</button>
+    <div class="admin-section">
+      <h3>Votazione</h3>
+      <div class="row" style="margin-top:0;">
+        <button class="btn" id="toggleVoting">Apri votazione</button>
+      </div>
+      <div id="tieWarning"></div>
     </div>
 
     <div class="admin-section">
       <h3>Foto dei costumi</h3>
+      <p style="font-size:12px; color:#7f9690; margin:0 0 10px;">Le foto vengono ridotte e compresse dal telefono prima dell'invio. Lato lungo 2000 px, obiettivo sotto 500 KB.</p>
       <div id="contestantList"></div>
     </div>
 
@@ -370,16 +515,22 @@
       <div class="row">
         <button class="btn" id="refreshResults">Aggiorna risultati</button>
       </div>
+      <label class="field">Ordine podio forzato (opzionale)</label>
+      <input type="text" id="cfgOverride" placeholder="es. 7,3,12">
+      <p style="font-size:11px; color:#7f9690; margin:6px 0 0;">Compilalo solo per risolvere un pareggio a mano: primo, secondo, terzo separati da virgola. Vuoto = ordine automatico per voti.</p>
+      <div class="row">
+        <button class="btn" id="saveOverride">Salva ordine podio</button>
+      </div>
     </div>
 
     <div class="admin-section">
       <button class="btn danger" id="resetVotes" style="width:100%;">Azzera tutti i voti</button>
-      <p style="font-size:12px; color:#7f9690; margin:8px 0 0;">Mantiene foto e impostazioni, azzera solo i conteggi voti.</p>
+      <p style="font-size:12px; color:#7f9690; margin:8px 0 0;">Mantiene foto e impostazioni, azzera solo i conteggi.</p>
     </div>
 
     <div class="admin-section">
       <button class="btn danger" id="resetAll" style="width:100%;">Reset totale — ricomincia da zero</button>
-      <p style="font-size:12px; color:#7f9690; margin:8px 0 0;">Cancella foto, voti, impostazioni e sblocca il voto su TUTTI i dispositivi (anche quelli già votati). Usalo solo se vuoi davvero ripartire da capo.</p>
+      <p style="font-size:12px; color:#7f9690; margin:8px 0 0;">Cancella foto, voti e impostazioni e sblocca il voto su TUTTI i dispositivi.</p>
     </div>
 
     <div class="row">
@@ -388,541 +539,1043 @@
   </div>
 </div>
 
+<script src="config.js"></script>
 <script>
 /* =========================================================================
-   CONFIGURAZIONE — modifica solo questa riga dopo aver pubblicato lo script
-   Google Apps Script (vedi ISTRUZIONI-SETUP.md). Incolla l'URL del Web App,
-   che finisce con /exec
+   I valori configurabili stanno in config.js, che NON viene sovrascritto
+   quando aggiorni questo file. Qui ci sono solo i default di sicurezza.
    ========================================================================= */
-const API_URL = "https://script.google.com/macros/s/AKfycbxNlxhB4oqtfi1MdKCqFd_AHxDXqFVNOBCPSgxCJDbzyjJcW_SqJRaKF85Hat4OZvIR/exec";
+const CFG = window.RD_CONFIG || {};
+const CONFIG_MISSING = !window.RD_CONFIG;
 
-const ADMIN_PIN = "3110"; // 31/10 — cambialo se vuoi
-const REFRESH_MS = 8000;  // ogni quanto la pagina ricontrolla lo stato
+const API_URL   = CFG.API_URL   || "INCOLLA_QUI_URL_WEB_APP_GOOGLE_APPS_SCRIPT";
+const ADMIN_PIN = CFG.ADMIN_PIN || "3110";
 
-let state = { eventName: "Concorso Miglior Costume", total: 0, phase: "pending", sessionId: "", contestants: {}, votes: {} };
-let myVote = null; // number del costume votato da questo browser, o null
+// Cadenze di polling. La normale resta lenta: solo durante la premiazione
+// attiva si accorcia, perche' li' il ritardo percepito conta davvero.
+const POLL_IDLE_MS   = CFG.POLL_IDLE_MS   || 8000;
+const POLL_REVEAL_MS = CFG.POLL_REVEAL_MS || 2500;
+const POLL_MAX_MS    = 30000;  // tetto del backoff dopo errori
 
-function toast(msg){
-  const t = document.getElementById('toast');
+// Pipeline immagini
+const FULL_LONG_EDGE  = 2000;
+const THUMB_LONG_EDGE = 640;
+const TARGET_BYTES    = CFG.TARGET_BYTES || 500 * 1024;
+const START_QUALITY   = 0.80;
+
+/* ======================= STATO ======================= */
+
+let state = {
+  eventName: "Concorso Miglior Costume", total: 0, phase: "pending",
+  sessionId: "", revealStep: 0, stateVersion: -1, podiumOverride: "",
+  contestants: {}, votes: {}
+};
+let myVote = null;
+let isAdmin = false;
+let pollTimer = null;
+let pollDelay = POLL_IDLE_MS;
+let lastRenderSig = null;
+let confettiPlayed = false;
+let netTrouble = false;
+
+/* ======================= UTILITY UI ======================= */
+
+function el(id){ return document.getElementById(id); }
+
+function toast(msg, ms){
+  const t = el('toast');
   t.textContent = msg;
   t.classList.add('show');
-  setTimeout(()=>t.classList.remove('show'), 2800);
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.classList.remove('show'), ms || 2800);
 }
 
-function apiConfigured(){
-  return API_URL && API_URL.indexOf('http') === 0;
+function showNetWarning(show, msg){
+  let w = el('netWarn');
+  if(show){
+    if(!w){
+      w = document.createElement('div');
+      w.id = 'netWarn'; w.className = 'net-warn';
+      document.body.appendChild(w);
+    }
+    w.textContent = msg || 'Connessione instabile, riprovo automaticamente…';
+  } else if(w){
+    w.remove();
+  }
 }
 
-async function apiGet(){
+function uuid(){
+  if(crypto && crypto.randomUUID) return crypto.randomUUID();
+  return 'v-' + Date.now() + '-' + Math.random().toString(36).slice(2,10);
+}
+
+/* ======================= LIVELLO API ======================= */
+
+function apiConfigured(){ return API_URL && API_URL.indexOf('http') === 0; }
+
+async function apiGet(mode){
   if(!apiConfigured()) return null;
-  try{
-    const res = await fetch(API_URL, { method:'GET' });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    return await res.json();
-  }catch(e){
-    console.error('apiGet failed', e);
-    return null;
-  }
+  const url = API_URL + (API_URL.indexOf('?') >= 0 ? '&' : '?') + 'mode=' + mode + '&t=' + Date.now();
+  const res = await fetch(url, { method:'GET' });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if(data && data.error) throw new Error(data.error);
+  return data;
 }
 
+// text/plain evita il preflight CORS, che Apps Script non gestisce bene
 async function apiPost(payload){
-  if(!apiConfigured()){ toast('URL del backend non configurato.'); return null; }
-  try{
-    const res = await fetch(API_URL, {
-      method:'POST',
-      // text/plain evita la richiesta preflight che Apps Script non gestisce bene
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(payload)
-    });
-    if(!res.ok) throw new Error('HTTP ' + res.status);
-    return await res.json();
-  }catch(e){
-    console.error('apiPost failed', e);
-    toast('Errore di connessione al backend. Riprova tra qualche secondo.');
-    return null;
-  }
+  if(!apiConfigured()) throw new Error('API_URL non configurato');
+  const res = await fetch(API_URL, {
+    method:'POST',
+    headers:{ 'Content-Type':'text/plain;charset=utf-8' },
+    body: JSON.stringify(payload)
+  });
+  if(!res.ok) throw new Error('HTTP ' + res.status);
+  return await res.json();
 }
 
-function loadMyVoteLocal(){
-  const storedNum = localStorage.getItem('costume-my-vote');
-  const storedSession = localStorage.getItem('costume-vote-session') || '';
-  const currentSession = state.sessionId || '';
-  if(storedNum && storedSession === currentSession){
-    myVote = parseInt(storedNum, 10);
+// Retry con backoff esponenziale: usato per le azioni che NON devono perdersi.
+async function apiPostRetry(payload, attempts){
+  attempts = attempts || 4;
+  let lastErr = null;
+  for(let i=0; i<attempts; i++){
+    try{
+      const r = await apiPost(payload);
+      if(r && r.ok) return r;
+      if(r && r.retryable === false) return r;   // errore definitivo, inutile insistere
+      lastErr = new Error((r && r.error) || 'risposta non valida');
+    }catch(e){ lastErr = e; }
+    if(i < attempts-1) await new Promise(r=>setTimeout(r, 700 * Math.pow(2, i) + Math.random()*400));
+  }
+  throw lastErr || new Error('operazione non riuscita');
+}
+
+/* ======================= VOTO: CODA PERSISTENTE ======================= */
+/*
+   Il voto viene scritto subito in localStorage con un token univoco, POI
+   inviato. Se la rete cade, il token resta in coda e viene ritentato al
+   prossimo poll o al ritorno online. Lo stesso token inviato due volte
+   conta una volta sola, perche' il backend deduplica sul token.
+*/
+
+function readStoredVote(){
+  try{ return JSON.parse(localStorage.getItem('rd-vote') || 'null'); }
+  catch(e){ return null; }
+}
+function writeStoredVote(v){
+  if(v) localStorage.setItem('rd-vote', JSON.stringify(v));
+  else localStorage.removeItem('rd-vote');
+}
+
+function syncMyVoteFromStorage(){
+  const v = readStoredVote();
+  if(v && v.session === (state.sessionId || '')){
+    myVote = v.number;
   } else {
+    if(v) writeStoredVote(null);   // reset totale lato admin: si sblocca
     myVote = null;
-    localStorage.removeItem('costume-my-vote');
-    localStorage.removeItem('costume-vote-session');
   }
-}
-function saveMyVoteLocal(n){
-  localStorage.setItem('costume-my-vote', String(n));
-  localStorage.setItem('costume-vote-session', state.sessionId || '');
-  myVote = n;
 }
 
-async function loadState(){
-  const data = await apiGet();
-  if(data){
-    state = Object.assign({eventName:"Concorso Miglior Costume", total:0, phase:"pending", sessionId:"", contestants:{}, votes:{}}, data);
+async function flushVoteQueue(){
+  const v = readStoredVote();
+  if(!v || v.sent || v.session !== (state.sessionId || '')) return;
+  try{
+    const r = await apiPostRetry({
+      action:'vote', voteToken: v.token, number: v.number, sessionId: v.session
+    }, 3);
+    if(r && r.ok){
+      v.sent = true; writeStoredVote(v);
+      showNetWarning(false);
+    } else if(r && r.error === 'voting_closed'){
+      toast('La votazione è stata chiusa prima che il voto arrivasse.');
+      writeStoredVote(null); myVote = null;
+    }
+  }catch(e){
+    showNetWarning(true, 'Voto in attesa di invio, riprovo automaticamente…');
   }
-  document.getElementById('eventTitle').textContent = state.eventName || "Concorso Miglior Costume";
-  loadMyVoteLocal(); // riverifica lo sblocco locale ogni volta che arriva lo stato aggiornato
+}
+
+async function castVote(n){
+  if(myVote){ toast('Hai già votato.'); return; }
+  if(state.phase !== 'open'){ toast('La votazione non è aperta.'); return; }
+
+  const entry = { token: uuid(), number: n, session: state.sessionId || '', sent:false };
+  writeStoredVote(entry);
+  myVote = n;
+  lastRenderSig = null;
+  renderAll();
+
+  try{
+    const r = await apiPostRetry({
+      action:'vote', voteToken: entry.token, number: n, sessionId: entry.session
+    }, 4);
+    if(r && r.ok){
+      entry.sent = true; writeStoredVote(entry);
+      toast('🐀 Voto registrato. Grazie!');
+      showNetWarning(false);
+    } else if(r && r.error === 'voting_closed'){
+      toast('Votazione già chiusa: voto non registrato.');
+      writeStoredVote(null); myVote = null; lastRenderSig = null; renderAll();
+    } else {
+      toast('Voto in coda: verrà inviato appena la rete lo permette.');
+    }
+  }catch(e){
+    // Il voto NON si perde: resta in coda e viene ritentato.
+    toast('Rete lenta: il tuo voto è in coda e verrà inviato automaticamente.', 4000);
+    showNetWarning(true, 'Voto in attesa di invio, riprovo automaticamente…');
+  }
+}
+
+/* ======================= POLLING ADATTIVO ======================= */
+
+function desiredDelay(){
+  if(netTrouble) return Math.min(pollDelay * 2, POLL_MAX_MS);
+  const revealing = state.phase === 'closed' && state.revealStep > 0 && state.revealStep < 7;
+  return revealing ? POLL_REVEAL_MS : POLL_IDLE_MS;
+}
+
+function scheduleNextPoll(){
+  clearTimeout(pollTimer);
+  const base = desiredDelay();
+  const jitter = base * (0.85 + Math.random()*0.3);   // evita il thundering herd
+  pollDelay = base;
+  pollTimer = setTimeout(pollTick, jitter);
+}
+
+async function pollTick(){
+  if(document.hidden){ scheduleNextPoll(); return; }   // scheda in background: non sprecare richieste
+  try{
+    const light = await apiGet('light');
+    netTrouble = false; showNetWarning(false);
+
+    const versionChanged = light.stateVersion !== state.stateVersion;
+    const votesChanged = light.voteRows !== state._voteRows;
+
+    state.phase = light.phase;
+    state.revealStep = light.revealStep;
+    state.total = light.total;
+    state._voteRows = light.voteRows;
+
+    if(light.sessionId !== state.sessionId){
+      state.sessionId = light.sessionId;
+      syncMyVoteFromStorage();
+      lastRenderSig = null;
+    }
+
+    // Il payload pesante si scarica SOLO quando qualcosa e' cambiato.
+    if(versionChanged || (votesChanged && needsVotes())){
+      await loadFull();
+    }
+    renderAll();
+    flushVoteQueue();
+  }catch(e){
+    netTrouble = true;
+    showNetWarning(true);
+    console.error('poll failed', e);
+  }
+  scheduleNextPoll();
+}
+
+function needsVotes(){
+  return state.phase === 'closed' || isAdmin;
+}
+
+async function loadFull(){
+  const data = await apiGet('full');
+  if(!data) return;
+  state = Object.assign(state, data);
+  state._voteRows = state._voteRows;
+  el('eventTitle').textContent = state.eventName || 'Concorso Miglior Costume';
+  syncMyVoteFromStorage();
+  lastRenderSig = null;
+}
+
+/* ======================= RENDER ======================= */
+
+function renderAll(){
+  renderStatus();
+  const sig = JSON.stringify({
+    p: state.phase, r: state.revealStep, t: state.total,
+    c: state.contestants, v: state.phase==='closed' ? state.votes : null,
+    m: myVote, o: state.podiumOverride, a: isAdmin
+  });
+  if(sig === lastRenderSig) return;
+  lastRenderSig = sig;
+  renderMainView();
 }
 
 function renderStatus(){
-  const dot = document.getElementById('statusDot');
-  const text = document.getElementById('statusText');
-  const bar = document.getElementById('statusBar');
+  const dot = el('statusDot'), text = el('statusText'), bar = el('statusBar');
   bar.classList.remove('voted');
   if(!apiConfigured()){
-    dot.className = 'dot closed';
-    text.textContent = 'Backend non configurato — vedi il pannello organizzatori.';
-    return;
+    dot.className='dot closed'; text.textContent='Backend non configurato — vedi il pannello organizzatori.'; return;
   }
   if(state.phase === 'closed'){
-    dot.className = 'dot closed';
-    text.textContent = myVote
-      ? `Votazione chiusa — hai votato il costume nº ${myVote}. Ecco il podio!`
-      : 'Votazione chiusa. Ecco il podio!';
+    dot.className='dot closed';
+    text.textContent = state.revealStep >= 7
+      ? 'Votazione chiusa — ecco la classifica finale.'
+      : 'Votazione chiusa. La premiazione sta per iniziare…';
     return;
   }
   if(myVote){
-    dot.className = 'dot open';
-    text.textContent = `Hai votato il costume nº ${myVote}. Grazie per aver partecipato!`;
-    bar.classList.add('voted');
+    dot.className='dot open'; bar.classList.add('voted');
+    const pending = readStoredVote();
+    text.textContent = (pending && !pending.sent)
+      ? `Voto per il nº ${myVote} in invio…`
+      : `Hai votato il costume nº ${myVote}. Grazie per aver partecipato!`;
   } else if(state.phase === 'open'){
-    dot.className = 'dot open';
-    text.textContent = 'Votazione aperta — tocca il costume che preferisci.';
+    dot.className='dot open'; text.textContent='Votazione aperta — tocca il costume che preferisci.';
   } else {
-    dot.className = 'dot closed';
-    text.textContent = 'La votazione non è ancora aperta. Puoi sfogliare i costumi nel frattempo.';
+    dot.className='dot closed'; text.textContent='La votazione non è ancora aperta. Puoi sfogliare i costumi nel frattempo.';
   }
 }
 
-function renderGallery(){
-  const gallery = document.getElementById('gallery');
-  const resultsView = document.getElementById('resultsPublicView');
+function renderMainView(){
+  const gallery = el('gallery'), reveal = el('revealView'), results = el('resultsPublicView');
+  const bar = el('revealBar');
 
   if(state.phase === 'closed'){
     gallery.classList.add('hidden');
-    resultsView.classList.remove('hidden');
-    renderPublicResults();
+    if(state.revealStep >= 7){
+      reveal.classList.add('hidden');
+      results.classList.remove('hidden');
+      renderFinalResults();
+    } else {
+      results.classList.add('hidden');
+      reveal.classList.remove('hidden');
+      renderRevealStep();
+    }
+    bar.classList.toggle('hidden', !isAdmin);
+    if(isAdmin) el('revealStepLabel').textContent = 'Step ' + state.revealStep + '/7';
+    el('eventSub').classList.add('hidden');
     return;
   }
-  gallery.classList.remove('hidden');
-  resultsView.classList.add('hidden');
 
+  bar.classList.add('hidden');
+  reveal.classList.add('hidden');
+  results.classList.add('hidden');
+  gallery.classList.remove('hidden');
+  el('eventSub').classList.remove('hidden');
+  renderGallery();
+}
+
+function renderGallery(){
+  const gallery = el('gallery');
   if(!state.total || state.total < 1){
     gallery.innerHTML = '<div class="empty">I costumi verranno mostrati qui appena l&#39;organizzatore avrà impostato i partecipanti.</div>';
     return;
   }
   gallery.innerHTML = '';
-  for(let n=1; n<=state.total; n++){
-    const photo = (state.contestants && state.contestants[String(n)]) || null;
+  const canVote = state.phase === 'open' && !myVote;
 
+  for(let n=1; n<=state.total; n++){
+    const c = state.contestants[String(n)];
+    const thumb = c && c.thumb;
     const card = document.createElement('div');
     card.className = 'card';
-    card.style.order = n; // ordine sempre garantito, indipendentemente dai dati arrivati
-    const isMine = myVote === n;
-    if(isMine) card.classList.add('mine');
-    const canVote = state.phase === 'open' && !myVote;
+    card.style.order = n;
+    if(myVote === n) card.classList.add('mine');
     if(canVote) card.classList.add('votable');
 
-    card.innerHTML = `
-      <div class="num">${n}</div>
-      ${photo ? `<img src="${photo}" alt="Costume ${n}" onerror="this.parentElement.querySelector('.num').insertAdjacentHTML('afterend', '<div class=&quot;noimg&quot;>Foto non disponibile</div>'); this.remove();">` : `<div class="noimg">Foto non ancora caricata</div>`}
-      ${isMine ? '<div class="mine-badge">Il tuo voto</div>' : ''}
-    `;
-    if(canVote){
-      card.addEventListener('click', ()=> openVoteConfirm(n));
+    card.innerHTML =
+      '<div class="num">' + n + '</div>' +
+      (thumb
+        ? '<div class="ph"></div><img loading="lazy" decoding="async" width="300" height="400" src="' + thumb + '" alt="Costume ' + n + '">'
+        : '<div class="noimg">Foto non ancora caricata</div>') +
+      (myVote === n ? '<div class="mine-badge">Il tuo voto</div>' : '');
+
+    const img = card.querySelector('img');
+    if(img){
+      img.addEventListener('load', ()=>{
+        img.classList.add('loaded');
+        const ph = card.querySelector('.ph'); if(ph) ph.remove();
+      });
+      img.addEventListener('error', ()=>{
+        const ph = card.querySelector('.ph'); if(ph) ph.remove();
+        img.remove();
+        card.insertAdjacentHTML('beforeend', '<div class="noimg">Foto non disponibile</div>');
+      });
     }
+
+    card.addEventListener('click', ()=>{
+      if(canVote) openVoteConfirm(n);
+      else if(c && c.full) openLightbox(n);
+    });
     gallery.appendChild(card);
   }
 }
 
+/* ---- Lightbox: la foto grande si scarica solo qui, su richiesta ---- */
+function openLightbox(n){
+  const c = state.contestants[String(n)];
+  if(!c || !c.full) return;
+  const box = document.createElement('div');
+  box.className = 'lightbox';
+  box.innerHTML =
+    '<div class="lb-meta">Costume nº ' + n + '</div>' +
+    '<button class="lb-close">✕</button>' +
+    '<div class="lb-spinner">Caricamento…</div>';
+  document.body.appendChild(box);
+
+  const img = new Image();
+  img.onload = ()=>{ box.querySelector('.lb-spinner').replaceWith(img); };
+  img.onerror = ()=>{ box.querySelector('.lb-spinner').textContent = 'Foto non disponibile.'; };
+  img.src = c.full;
+
+  const close = ()=> box.remove();
+  box.querySelector('.lb-close').onclick = close;
+  box.addEventListener('click', (ev)=>{ if(ev.target === box) close(); });
+}
+
+/* ======================= CLASSIFICA E PODIO ======================= */
+
+/*
+  Ordinamento deterministico: voti decrescenti, poi numero crescente.
+  Se l'admin ha compilato podiumOverride, i numeri indicati vengono
+  forzati nelle prime posizioni (serve per sciogliere un pareggio a mano).
+*/
 function rankedList(){
   const list = [];
   for(let n=1; n<=state.total; n++){
     list.push({
       n,
       c: (state.votes && state.votes[String(n)]) || 0,
-      photo: (state.contestants && state.contestants[String(n)]) || null
+      photo: (state.contestants[String(n)] || {}).full || '',
+      thumb: (state.contestants[String(n)] || {}).thumb || ''
     });
   }
-  list.sort((a,b)=> b.c - a.c);
+  list.sort((a,b)=> b.c - a.c || a.n - b.n);
+
+  const override = (state.podiumOverride || '').split(',')
+    .map(s=>parseInt(s.trim(),10)).filter(x=>!isNaN(x));
+  if(override.length){
+    const picked = [];
+    override.forEach(num=>{
+      const i = list.findIndex(x=>x.n === num);
+      if(i >= 0) picked.push(list.splice(i,1)[0]);
+    });
+    return picked.concat(list);
+  }
   return list;
 }
 
-function podiumSlotHtml(item, place){
-  if(!item) return '';
-  const cls = place===1 ? 'gold' : place===2 ? 'silver' : 'bronze';
-  const medalLabel = place===1 ? '1° posto — Vincitore' : place===2 ? '2° posto' : '3° posto';
-  return `
-    <div class="podium-slot ${cls}">
-      <div class="photo-wrap">
-        ${item.photo ? `<img src="${item.photo}" alt="Costume ${item.n}">` : `<div class="noimg">Nessuna foto</div>`}
-      </div>
-      <div class="medal">${medalLabel}</div>
-      <div class="pnum">Nº ${item.n}</div>
-      <div class="pvotes">${item.c} ${item.c===1?'voto':'voti'}</div>
-    </div>
-  `;
+// Un posto e' "a pari merito" se qualcun altro ha lo stesso numero di voti.
+function isTied(list, idx){
+  const item = list[idx];
+  if(!item || item.c === 0) return false;
+  return list.some((o,i)=> i !== idx && o.c === item.c);
 }
 
-let confettiPlayed = false;
+function detectTies(){
+  const list = rankedList();
+  const top = list.slice(0, 4);
+  const problems = [];
+  for(let i=0; i<Math.min(3, top.length); i++){
+    if(isTied(list, i)) problems.push({ place:i+1, votes: top[i].c });
+  }
+  return problems;
+}
+
+const REVEAL_COPY = {
+  0: { kicker:'La votazione è chiusa.', hint:'La premiazione sta per iniziare…' },
+  1: { kicker:'Al terzo posto troviamo…', hint:'' },
+  3: { kicker:'Al secondo posto…', hint:'' },
+  5: { kicker:'E al primo posto…', hint:'' }
+};
+
+function renderRevealStep(){
+  const view = el('revealView');
+  const step = state.revealStep;
+  const list = rankedList();
+
+  if(REVEAL_COPY[step]){
+    view.innerHTML =
+      '<h2 class="reveal-kicker">' + REVEAL_COPY[step].kicker + '</h2>' +
+      '<div class="suspense-dots" style="margin-top:18px;"><span></span><span></span><span></span></div>' +
+      (REVEAL_COPY[step].hint ? '<div class="reveal-hint">' + REVEAL_COPY[step].hint + '</div>' : '');
+    return;
+  }
+
+  const map = { 2:{i:2, place:3}, 4:{i:1, place:2}, 6:{i:0, place:1} };
+  const conf = map[step];
+  if(!conf){ view.innerHTML = ''; return; }
+
+  const item = list[conf.i];
+  if(!item){
+    view.innerHTML = '<h2 class="reveal-kicker">Non ci sono abbastanza partecipanti.</h2>';
+    return;
+  }
+
+  const cls = conf.place===1 ? 'gold' : conf.place===2 ? 'silver' : 'bronze';
+  const label = conf.place===1 ? 'Vincitore' : conf.place + '° posto';
+  const tie = isTied(list, conf.i) ? '<div class="tie-flag">A pari merito</div>' : '';
+
+  view.innerHTML =
+    '<div class="reveal-card ' + cls + '">' +
+      '<div class="photo-wrap">' +
+        (item.photo || item.thumb
+          ? '<img src="' + (item.photo || item.thumb) + '" alt="Costume ' + item.n + '">'
+          : '<div class="noimg">Nessuna foto</div>') +
+      '</div>' +
+      '<div class="reveal-place">' + label + '</div>' +
+      '<div class="reveal-num">Costume nº ' + item.n + '</div>' +
+      '<div class="reveal-votes">' + item.c + (item.c===1?' voto':' voti') + '</div>' +
+      tie +
+    '</div>';
+
+  if(conf.place === 1) launchConfetti();
+}
+
+function renderFinalResults(){
+  const view = el('resultsPublicView');
+  if(!state.total){ view.innerHTML=''; return; }
+  const list = rankedList();
+  const [first, second, third] = list;
+  launchConfetti();
+
+  let gap = '';
+  if(first && second){
+    const d = first.c - second.c;
+    if(d > 0) gap = '<div class="pvotes">+' + d + (d===1?' voto':' voti') + ' sul secondo</div>';
+    else if(first.c > 0) gap = '<div class="pvotes">Primo posto a pari merito</div>';
+  }
+
+  const slot = (item, place)=>{
+    if(!item) return '';
+    const cls = place===1?'gold':place===2?'silver':'bronze';
+    const label = place===1?'1° posto — Vincitore':place+'° posto';
+    return '<div class="podium-slot ' + cls + '">' +
+      '<div class="photo-wrap">' +
+        (item.thumb || item.photo
+          ? '<img loading="lazy" src="' + (item.thumb || item.photo) + '" alt="Costume ' + item.n + '">'
+          : '<div class="noimg">Nessuna foto</div>') +
+      '</div>' +
+      '<div class="medal">' + label + '</div>' +
+      '<div class="pnum">Nº ' + item.n + '</div>' +
+      '<div class="pvotes">' + item.c + (item.c===1?' voto':' voti') + '</div>' +
+    '</div>';
+  };
+
+  const rows = list.map((item, i)=>
+    '<div class="ranking-row">' +
+      '<div class="rpos">' + (i+1) + '°</div>' +
+      '<div class="rnum">' + item.n + '</div>' +
+      '<div class="rbar"><span style="width:' + (list[0].c ? (item.c/list[0].c*100) : 0) + '%;"></span></div>' +
+      '<div class="rcount">' + item.c + '</div>' +
+    '</div>').join('');
+
+  view.innerHTML =
+    '<div class="podium-title">Il podio 🏆</div>' +
+    '<div class="podium-sub">' + (state.eventName || '') + ' — grazie a tutti i partecipanti!</div>' +
+    '<div class="podium">' + slot(second,2) + slot(first,1) + slot(third,3) + '</div>' +
+    (gap ? '<div style="text-align:center; margin:-14px 0 20px;">' + gap + '</div>' : '') +
+    '<div class="ranking"><div class="podium-title" style="font-size:16px;">Classifica completa</div>' + rows + '</div>';
+}
+
 function launchConfetti(){
   if(confettiPlayed) return;
   confettiPlayed = true;
-  const layer = document.getElementById('confettiLayer');
-  const colors = ['#3ED9B4', '#EDEAE0', '#4b6b57', '#8fe8d3'];
-  for(let i=0; i<40; i++){
-    const piece = document.createElement('div');
-    piece.className = 'confetti-piece';
-    piece.style.left = Math.random()*100 + 'vw';
-    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
-    piece.style.animationDuration = (2.2 + Math.random()*1.8) + 's';
-    piece.style.animationDelay = (Math.random()*0.6) + 's';
-    piece.style.transform = `rotate(${Math.random()*360}deg)`;
-    layer.appendChild(piece);
-    setTimeout(()=> piece.remove(), 5000);
+  const layer = el('confettiLayer');
+  const colors = ['#3ED9B4','#EDEAE0','#4b6b57','#8fe8d3','#E8C468'];
+  for(let i=0;i<44;i++){
+    const p = document.createElement('div');
+    p.className='confetti-piece';
+    p.style.left = Math.random()*100 + 'vw';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    p.style.animationDuration = (2.2 + Math.random()*1.8) + 's';
+    p.style.animationDelay = (Math.random()*0.5) + 's';
+    layer.appendChild(p);
+    setTimeout(()=>p.remove(), 5200);
   }
 }
 
-function renderPublicResults(){
-  const view = document.getElementById('resultsPublicView');
-  if(!state.total){ view.innerHTML = ''; return; }
-  const list = rankedList();
-  const [first, second, third] = list;
-
-  launchConfetti();
-
-  let gapNote = '';
-  if(first && second){
-    const gap = first.c - second.c;
-    if(gap > 0) gapNote = `<div class="pvotes" style="margin-top:2px;">+${gap} ${gap===1?'voto':'voti'} sul secondo</div>`;
-    else if(gap === 0 && first.c > 0) gapNote = `<div class="pvotes" style="margin-top:2px;">Pareggio con il secondo posto</div>`;
-  }
-
-  const podiumHtml = `
-    <div class="podium-title">Il podio 🏆</div>
-    <div class="podium-sub">${state.eventName || 'Concorso Miglior Costume'} — grazie a tutti i partecipanti!</div>
-    <div class="podium">
-      ${podiumSlotHtml(second, 2)}
-      ${podiumSlotHtml(first, 1)}
-      ${podiumSlotHtml(third, 3)}
-    </div>
-    ${gapNote ? `<div style="text-align:center; margin-top:-16px; margin-bottom:20px;">${gapNote}</div>` : ''}
-  `;
-
-  const rankingRows = list.map((item, idx)=> `
-    <div class="ranking-row">
-      <div class="rpos">${idx+1}°</div>
-      <div class="rnum">${item.n}</div>
-      <div class="rbar"><span style="width:${list[0].c ? (item.c/list[0].c*100) : 0}%;"></span></div>
-      <div class="rcount">${item.c}</div>
-    </div>
-  `).join('');
-
-  view.innerHTML = `
-    ${podiumHtml}
-    <div class="ranking">
-      <div class="podium-title" style="font-size:16px;">Classifica completa</div>
-      ${rankingRows}
-    </div>
-  `;
-}
+/* ======================= VOTO: CONFERMA ======================= */
 
 function openVoteConfirm(n){
-  document.getElementById('voteText').textContent = `Stai per votare il costume numero ${n}. Potrai votare una sola volta da questo dispositivo.`;
-  document.getElementById('voteOverlay').classList.remove('hidden');
-  document.getElementById('voteConfirm').onclick = async ()=>{
-    document.getElementById('voteOverlay').classList.add('hidden');
+  el('voteText').textContent = 'Stai per votare il costume numero ' + n + '. Potrai votare una sola volta da questo dispositivo.';
+  el('voteOverlay').classList.remove('hidden');
+  el('voteConfirm').onclick = async ()=>{
+    el('voteOverlay').classList.add('hidden');
     await castVote(n);
   };
 }
-document.getElementById('voteCancel').onclick = ()=> document.getElementById('voteOverlay').classList.add('hidden');
+el('voteCancel').onclick = ()=> el('voteOverlay').classList.add('hidden');
 
-async function castVote(n){
-  if(myVote){ toast('Hai già votato.'); return; }
-  saveMyVoteLocal(n); // blocco locale subito, per evitare doppi tap
-  const result = await apiPost({ action:'vote', number: n });
-  if(!result || !result.ok){
-    toast('Errore nel registrare il voto. Riprova.');
-    localStorage.removeItem('costume-my-vote');
-    myVote = null;
-    return;
-  }
-  toast('🐀 Voto registrato. Grazie!');
-  lastGallerySignature = null; // forza il ridisegno per mostrare subito il voto
-  await refreshAll();
+/* ======================= PIPELINE IMMAGINI ======================= */
+/*
+  Canvas nativo, nessuna libreria: createImageBitmap gestisce l'EXIF
+  nativamente (imageOrientation: 'from-image') e decodifica fuori dal
+  main thread. heic2any viene caricato SOLO se serve davvero.
+*/
+
+let webpOk = null;
+function supportsWebp(){
+  if(webpOk !== null) return webpOk;
+  const c = document.createElement('canvas'); c.width=c.height=1;
+  webpOk = c.toDataURL('image/webp').indexOf('image/webp') === 5;
+  return webpOk;
 }
 
-let lastGallerySignature = null;
+function isHeic(file){
+  const n = (file.name || '').toLowerCase();
+  return /image\/heic|image\/heif/.test(file.type) || /\.hei[cf]$/.test(n);
+}
 
-async function refreshAll(){
-  await loadState();
-  renderStatus();
-  if(document.getElementById('adminOverlay').classList.contains('hidden')){
-    const signature = JSON.stringify({
-      total: state.total,
-      phase: state.phase,
-      contestants: state.contestants,
-      votes: state.phase === 'closed' ? state.votes : null,
-      myVote: myVote
-    });
-    if(signature !== lastGallerySignature){
-      lastGallerySignature = signature;
-      renderGallery();
+let heicLoader = null;
+function loadHeicLib(){
+  if(heicLoader) return heicLoader;
+  heicLoader = new Promise((resolve, reject)=>{
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+    s.onload = ()=> resolve(window.heic2any);
+    s.onerror = ()=> reject(new Error('heic2any non caricato'));
+    document.head.appendChild(s);
+  });
+  return heicLoader;
+}
+
+// Fallback per browser senza createImageBitmap: leggo il tag EXIF a mano.
+function readExifOrientation(buffer){
+  const view = new DataView(buffer);
+  if(view.byteLength < 4 || view.getUint16(0,false) !== 0xFFD8) return 1;
+  let off = 2;
+  while(off + 4 < view.byteLength){
+    const marker = view.getUint16(off, false);
+    if(marker === 0xFFE1){
+      const little = view.getUint16(off + 12, false) === 0x4949;
+      const tiff = off + 12;
+      const dirOff = tiff + view.getUint32(off + 16, little);
+      const entries = view.getUint16(dirOff, little);
+      for(let i=0;i<entries;i++){
+        const entry = dirOff + 2 + i*12;
+        if(view.getUint16(entry, little) === 0x0112){
+          return view.getUint16(entry + 8, little) || 1;
+        }
+      }
+      return 1;
     }
+    if((marker & 0xFF00) !== 0xFF00) break;
+    off += 2 + view.getUint16(off + 2, false);
+  }
+  return 1;
+}
+
+function applyOrientation(ctx, orientation, w, h){
+  switch(orientation){
+    case 2: ctx.transform(-1,0,0,1,w,0); break;
+    case 3: ctx.transform(-1,0,0,-1,w,h); break;
+    case 4: ctx.transform(1,0,0,-1,0,h); break;
+    case 5: ctx.transform(0,1,1,0,0,0); break;
+    case 6: ctx.transform(0,1,-1,0,h,0); break;
+    case 7: ctx.transform(0,-1,-1,0,h,w); break;
+    case 8: ctx.transform(0,-1,1,0,0,w); break;
   }
 }
 
-let pollingStarted = false;
-async function init(){
-  document.getElementById('apiWarning').classList.toggle('hidden', apiConfigured());
-  await refreshAll();
-  if(!pollingStarted){
-    pollingStarted = true;
-    setInterval(refreshAll, REFRESH_MS);
+async function decodeImage(file, onStage){
+  let workFile = file;
+  if(isHeic(file)){
+    onStage('Converto HEIC…');
+    const heic2any = await loadHeicLib();
+    const blob = await heic2any({ blob:file, toType:'image/jpeg', quality:0.92 });
+    workFile = new File([Array.isArray(blob)?blob[0]:blob], 'converted.jpg', { type:'image/jpeg' });
   }
-}
-init();
 
-/* ---------- ADMIN ---------- */
-let adminUnlocked = false;
-
-document.getElementById('gearBtn').onclick = ()=>{
-  if(adminUnlocked){ openAdminPanel(); }
-  else { document.getElementById('pinOverlay').classList.remove('hidden'); }
-};
-document.getElementById('pinCancel').onclick = ()=> document.getElementById('pinOverlay').classList.add('hidden');
-document.getElementById('pinConfirm').onclick = ()=>{
-  const val = document.getElementById('pinInput').value;
-  if(val === ADMIN_PIN){
-    adminUnlocked = true;
-    document.getElementById('pinOverlay').classList.add('hidden');
-    document.getElementById('pinInput').value = '';
-    openAdminPanel();
-  } else {
-    toast('PIN errato.');
+  if(window.createImageBitmap){
+    try{
+      const bmp = await createImageBitmap(workFile, { imageOrientation:'from-image' });
+      return { source: bmp, width: bmp.width, height: bmp.height, oriented: true };
+    }catch(e){ /* fallback sotto */ }
   }
-};
 
-function updateToggleButtonLabel(){
-  const btn = document.getElementById('toggleVoting');
-  if(state.phase === 'pending') btn.textContent = 'Apri votazione';
-  else if(state.phase === 'open') btn.textContent = 'Chiudi votazione e mostra il podio';
-  else btn.textContent = 'Riapri la votazione';
+  const buf = await workFile.arrayBuffer();
+  const orientation = /jpe?g/i.test(workFile.type) ? readExifOrientation(buf) : 1;
+  const url = URL.createObjectURL(workFile);
+  const img = await new Promise((res, rej)=>{
+    const im = new Image();
+    im.onload = ()=>res(im); im.onerror = ()=>rej(new Error('immagine non leggibile'));
+    im.src = url;
+  });
+  URL.revokeObjectURL(url);
+  return { source: img, width: img.naturalWidth, height: img.naturalHeight, oriented:false, orientation };
 }
 
-async function openAdminPanel(){
-  document.getElementById('apiWarning').classList.toggle('hidden', apiConfigured());
-  await loadState();
-  document.getElementById('cfgName').value = state.eventName || '';
-  document.getElementById('cfgTotal').value = state.total || '';
-  updateToggleButtonLabel();
-  renderContestantList();
-  renderResults();
-  document.getElementById('adminOverlay').classList.remove('hidden');
-}
-document.getElementById('adminClose').onclick = async ()=>{
-  document.getElementById('adminOverlay').classList.add('hidden');
-  lastGallerySignature = null; // il pannello admin potrebbe aver cambiato dati
-  await refreshAll();
-};
+function drawResized(decoded, longEdge){
+  const swap = !decoded.oriented && decoded.orientation >= 5;
+  const srcW = swap ? decoded.height : decoded.width;
+  const srcH = swap ? decoded.width  : decoded.height;
+  const scale = Math.min(1, longEdge / Math.max(srcW, srcH));
+  const w = Math.max(1, Math.round(srcW * scale));
+  const h = Math.max(1, Math.round(srcH * scale));
 
-document.getElementById('cfgSave').onclick = async ()=>{
-  const btn = document.getElementById('cfgSave');
-  const name = document.getElementById('cfgName').value.trim() || 'Concorso Miglior Costume';
-  const rawTotal = document.getElementById('cfgTotal').value.replace(/[^0-9]/g, '');
-  const parsedTotal = parseInt(rawTotal, 10);
-
-  if(!rawTotal || isNaN(parsedTotal) || parsedTotal < 1){
-    toast('Inserisci un numero valido di partecipanti (es. 60).');
-    return;
-  }
-  const total = Math.min(200, parsedTotal);
-
-  btn.disabled = true; btn.textContent = 'Salvataggio…';
-  const result = await apiPost({ action:'saveConfig', eventName:name, total:total, phase: state.phase || 'pending', sessionId: state.sessionId || '' });
-  btn.disabled = false; btn.textContent = 'Salva impostazioni';
-
-  if(result && result.ok){
-    state.eventName = name;
-    state.total = total;
-    document.getElementById('cfgTotal').value = total;
-    toast(`Impostazioni salvate: ${total} partecipanti.`);
-    renderContestantList();
-  } else {
-    toast('Salvataggio non riuscito. Controlla la connessione o l\'URL del backend.');
-  }
-};
-
-document.getElementById('toggleVoting').onclick = async ()=>{
-  let nextPhase;
-  let confirmMsg = null;
-  if(state.phase === 'pending') nextPhase = 'open';
-  else if(state.phase === 'open'){
-    nextPhase = 'closed';
-    confirmMsg = 'Chiudere la votazione? Sulla pagina principale apparirà subito il podio con i primi 3, e nessuno potrà più votare. Confermi?';
-  } else {
-    nextPhase = 'open';
-    confirmMsg = 'Riaprire la votazione? Il podio non sarà più visibile agli ospiti finché non richiudi. Confermi?';
-  }
-  if(confirmMsg && !confirm(confirmMsg)) return;
-
-  const result = await apiPost({ action:'saveConfig', eventName: state.eventName, total: state.total, phase: nextPhase, sessionId: state.sessionId || '' });
-  if(result && result.ok){
-    state.phase = nextPhase;
-    updateToggleButtonLabel();
-    const messages = { open: 'Votazione aperta.', closed: 'Votazione chiusa — il podio è ora visibile a tutti.', pending: 'Votazione riportata in stato di attesa.' };
-    toast(messages[nextPhase] || 'Stato aggiornato.');
-  } else {
-    toast('Operazione non riuscita. Riprova.');
-  }
-};
-
-document.getElementById('resetVotes').onclick = async ()=>{
-  if(!confirm("Azzerare tutti i voti? L'operazione non è reversibile.")) return;
-  const result = await apiPost({ action:'resetVotes' });
-  if(result && result.ok){
-    state.votes = {};
-    toast('Voti azzerati. Nota: chi ha già votato dal proprio dispositivo resterà segnato come "ha votato" su quel dispositivo.');
-    renderResults();
-  } else {
-    toast('Operazione non riuscita. Riprova.');
-  }
-};
-
-document.getElementById('resetAll').onclick = async ()=>{
-  const sure = confirm(
-    "Reset TOTALE: verranno cancellate tutte le foto, tutti i voti e le impostazioni. " +
-    "Il voto si sbloccherà su tutti i dispositivi, anche per chi ha già votato. " +
-    "Questa azione non è reversibile. Vuoi continuare?"
-  );
-  if(!sure) return;
-  const confirmAgain = confirm("Sei sicuro? Ricontrolla: è l'ultima conferma prima di azzerare tutto l'evento.");
-  if(!confirmAgain) return;
-
-  const btn = document.getElementById('resetAll');
-  btn.disabled = true; btn.textContent = 'Reset in corso…';
-  const result = await apiPost({ action:'resetAll' });
-  btn.disabled = false; btn.textContent = 'Reset totale — ricomincia da zero';
-
-  if(result && result.ok){
-    lastGallerySignature = null;
-    confettiPlayed = false;
-    localStorage.removeItem('costume-my-vote');
-    localStorage.removeItem('costume-vote-session');
-    await loadState(); // riprende anche il nuovo sessionId
-    document.getElementById('cfgName').value = state.eventName || '';
-    document.getElementById('cfgTotal').value = state.total || '';
-    updateToggleButtonLabel();
-    renderContestantList();
-    renderResults();
-    toast('Evento azzerato: si riparte da zero per tutti.');
-  } else {
-    toast('Reset non riuscito. Riprova.');
-  }
-};
-
-document.getElementById('refreshResults').onclick = async ()=>{
-  await loadState();
-  renderResults();
-};
-
-function renderContestantList(){
-  const list = document.getElementById('contestantList');
-  list.innerHTML = '';
-  if(!state.total){ list.innerHTML = '<p style="color:#7f9690;font-size:13px;">Imposta prima il numero di partecipanti.</p>'; return; }
-  for(let n=1; n<=state.total; n++){
-    const photo = state.contestants ? state.contestants[String(n)] : null;
-
-    const row = document.createElement('div');
-    row.className = 'contestant-row';
-    row.innerHTML = `
-      <div class="num2">${n}</div>
-      <div class="thumb" id="thumb-${n}">${photo ? `<img src="${photo}">` : 'nessuna'}</div>
-      <input type="file" accept="image/*" capture="environment" id="file-${n}" style="display:none;">
-      <button class="fileBtn" id="btn-${n}">Carica foto</button>
-    `;
-    list.appendChild(row);
-    document.getElementById('btn-'+n).onclick = ()=> document.getElementById('file-'+n).click();
-    document.getElementById('file-'+n).onchange = (e)=> handlePhotoUpload(e, n);
-  }
-}
-
-// Un cella di Google Sheet regge al massimo 50.000 caratteri: comprimiamo
-// l'immagine finché il base64 risultante sta comodamente sotto quel limite.
-const MAX_DATAURL_LENGTH = 42000;
-
-function compressImage(img, maxWidth, quality){
-  const scale = Math.min(1, maxWidth / img.width);
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(img.width * scale);
-  canvas.height = Math.round(img.height * scale);
+  canvas.width = w; canvas.height = h;
   const ctx = canvas.getContext('2d');
-  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL('image/jpeg', quality);
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+
+  if(!decoded.oriented && decoded.orientation > 1){
+    applyOrientation(ctx, decoded.orientation, w, h);
+    const dw = swap ? h : w, dh = swap ? w : h;
+    ctx.drawImage(decoded.source, 0, 0, dw, dh);
+  } else {
+    ctx.drawImage(decoded.source, 0, 0, w, h);
+  }
+  return canvas;
 }
 
-function handlePhotoUpload(e, n){
+function encodeCanvas(canvas, quality){
+  const type = supportsWebp() ? 'image/webp' : 'image/jpeg';
+  return new Promise(res=> canvas.toBlob(b=>res({blob:b, mime:type}), type, quality));
+}
+
+// Scala di qualita': prima abbasso la qualita', solo dopo le dimensioni.
+async function encodeUnderBudget(decoded, longEdge, budget){
+  const ladder = [START_QUALITY, 0.72, 0.64, 0.56];
+  for(const q of ladder){
+    const out = await encodeCanvas(drawResized(decoded, longEdge), q);
+    if(out.blob && out.blob.size <= budget) return out;
+  }
+  for(const edge of [1600, 1280, 1024]){
+    const out = await encodeCanvas(drawResized(decoded, edge), 0.70);
+    if(out.blob && out.blob.size <= budget) return out;
+  }
+  return await encodeCanvas(drawResized(decoded, 1024), 0.6);
+}
+
+function blobToBase64(blob){
+  return new Promise((res, rej)=>{
+    const r = new FileReader();
+    r.onload = ()=> res(String(r.result).split(',')[1]);
+    r.onerror = ()=> rej(new Error('lettura blob fallita'));
+    r.readAsDataURL(blob);
+  });
+}
+
+// XHR invece di fetch: serve l'evento di progresso sull'upload.
+function postWithProgress(payload, onProgress){
+  return new Promise((resolve, reject)=>{
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', API_URL, true);
+    xhr.setRequestHeader('Content-Type', 'text/plain;charset=utf-8');
+    xhr.upload.onprogress = (ev)=>{
+      if(ev.lengthComputable) onProgress(ev.loaded / ev.total);
+    };
+    xhr.onload = ()=>{
+      try{ resolve(JSON.parse(xhr.responseText)); }
+      catch(e){ reject(new Error('risposta non valida: ' + xhr.status)); }
+    };
+    xhr.onerror = ()=> reject(new Error('errore di rete'));
+    xhr.ontimeout = ()=> reject(new Error('timeout'));
+    xhr.timeout = 120000;
+    xhr.send(JSON.stringify(payload));
+  });
+}
+
+async function handlePhotoUpload(e, n){
   const file = e.target.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = (ev)=>{
-    const img = new Image();
-    img.onload = async ()=>{
-      const attempts = [
-        [700, 0.65], [600, 0.55], [500, 0.45], [400, 0.35], [320, 0.3]
-      ];
-      let dataUrl = null;
-      for(const [w, q] of attempts){
-        dataUrl = compressImage(img, w, q);
-        if(dataUrl.length <= MAX_DATAURL_LENGTH) break;
-      }
-      if(dataUrl.length > MAX_DATAURL_LENGTH){
-        toast('Foto troppo pesante anche dopo la compressione: prova con un\'altra immagine.');
-        return;
-      }
-      const result = await apiPost({ action:'savePhoto', number: n, photo: dataUrl });
-      if(result && result.ok){
-        state.contestants[String(n)] = dataUrl;
-        document.getElementById('thumb-'+n).innerHTML = `<img src="${dataUrl}">`;
-        toast(`Foto caricata per il numero ${n}.`);
-      } else {
-        toast('Errore nel caricare la foto, riprova.');
-      }
-    };
-    img.src = ev.target.result;
-  };
-  reader.readAsDataURL(file);
+  e.target.value = '';   // permette di ricaricare lo stesso file
+
+  const barWrap = el('prog-' + n), bar = barWrap.querySelector('i'), stage = el('stage-' + n);
+  const setStage = (txt)=>{ stage.classList.add('active'); stage.textContent = txt; };
+  const setPct = (p)=>{ barWrap.classList.add('active'); bar.style.width = Math.round(p*100) + '%'; };
+
+  try{
+    setStage('Leggo la foto…'); setPct(0.05);
+    const decoded = await decodeImage(file, setStage);
+
+    const longEdge = Math.max(decoded.width, decoded.height);
+    setStage('Ridimensiono…'); setPct(0.2);
+
+    let full;
+    // Se e' gia' sotto soglia e non troppo grande, la carico com'e'.
+    if(file.size <= TARGET_BYTES && longEdge <= FULL_LONG_EDGE && !isHeic(file)){
+      full = { blob: file, mime: file.type || 'image/jpeg' };
+      setStage('Già leggera: nessuna ricompressione');
+    } else {
+      full = await encodeUnderBudget(decoded, FULL_LONG_EDGE, TARGET_BYTES);
+      setStage('Comprimo…');
+    }
+    setPct(0.4);
+
+    const thumb = await encodeCanvas(drawResized(decoded, THUMB_LONG_EDGE), 0.75);
+    setPct(0.5);
+
+    setStage('Invio (' + Math.round(full.blob.size/1024) + ' KB)…');
+    const [fullB64, thumbB64] = await Promise.all([
+      blobToBase64(full.blob), blobToBase64(thumb.blob)
+    ]);
+
+    const res = await postWithProgress({
+      action:'savePhoto', number:n,
+      full:{ data:fullB64, mime:full.mime },
+      thumb:{ data:thumbB64, mime:thumb.mime }
+    }, (p)=> setPct(0.5 + p*0.48));
+
+    if(res && res.ok){
+      setPct(1); setStage('Caricata ✓');
+      state.contestants[String(n)] = { thumb: res.thumbUrl, full: res.fullUrl };
+      el('thumb-' + n).innerHTML = '<img src="' + res.thumbUrl + '">';
+      lastRenderSig = null;
+      toast('Foto caricata per il numero ' + n + '.');
+      setTimeout(()=>{ barWrap.classList.remove('active'); stage.classList.remove('active'); }, 2500);
+    } else {
+      throw new Error((res && res.error) || 'errore sconosciuto');
+    }
+  }catch(err){
+    console.error('upload failed', err);
+    setStage('Errore: ' + err.message);
+    bar.style.background = '#c05353';
+    toast('Caricamento non riuscito per il nº ' + n + '. Riprova.', 4000);
+  }
 }
 
-function renderResults(){
-  const list = document.getElementById('resultsList');
-  list.innerHTML = '';
-  if(!state.total){ return; }
-  const counts = [];
-  let max = 1;
-  for(let n=1; n<=state.total; n++){
-    const c = (state.votes && state.votes[String(n)]) || 0;
-    counts.push({n, c});
-    if(c > max) max = c;
+/* ======================= ADMIN ======================= */
+
+el('gearBtn').onclick = ()=>{
+  if(isAdmin) openAdminPanel();
+  else el('pinOverlay').classList.remove('hidden');
+};
+el('pinCancel').onclick = ()=> el('pinOverlay').classList.add('hidden');
+el('pinConfirm').onclick = async ()=>{
+  if(el('pinInput').value === ADMIN_PIN){
+    isAdmin = true;
+    sessionStorage.setItem('rd-admin','1');
+    el('pinOverlay').classList.add('hidden');
+    el('pinInput').value = '';
+    lastRenderSig = null;
+    await openAdminPanel();
+  } else toast('PIN errato.');
+};
+
+async function openAdminPanel(){
+  el('apiWarning').classList.toggle('hidden', apiConfigured());
+  try{ await loadFull(); }catch(e){ toast('Non riesco a leggere lo stato: ' + e.message); }
+  el('cfgName').value = state.eventName || '';
+  el('cfgTotal').value = state.total || '';
+  el('cfgOverride').value = state.podiumOverride || '';
+  updateToggleLabel();
+  renderTieWarning();
+  renderContestantList();
+  renderAdminResults();
+  el('adminOverlay').classList.remove('hidden');
+}
+
+el('adminClose').onclick = ()=>{
+  el('adminOverlay').classList.add('hidden');
+  lastRenderSig = null;
+  renderAll();
+};
+
+function updateToggleLabel(){
+  const b = el('toggleVoting');
+  if(state.phase === 'pending') b.textContent = 'Apri votazione';
+  else if(state.phase === 'open') b.textContent = 'Chiudi votazione e avvia premiazione';
+  else b.textContent = 'Riapri la votazione';
+}
+
+function renderTieWarning(){
+  const box = el('tieWarning');
+  if(state.phase === 'pending'){ box.innerHTML=''; return; }
+  const ties = detectTies();
+  if(!ties.length){ box.innerHTML=''; return; }
+  box.innerHTML = '<div class="tie-warning">⚠️ Pareggio sul podio: ' +
+    ties.map(t=>t.place + '° posto (' + t.votes + ' voti)').join(', ') +
+    '. L\'ordine automatico usa il numero più basso. Se vuoi decidere tu, compila "Ordine podio forzato" più sotto prima di avviare la premiazione.</div>';
+}
+
+el('cfgSave').onclick = async ()=>{
+  const b = el('cfgSave');
+  const name = el('cfgName').value.trim() || 'Concorso Miglior Costume';
+  const raw = el('cfgTotal').value.replace(/[^0-9]/g,'');
+  const num = parseInt(raw,10);
+  if(!raw || isNaN(num) || num < 1){ toast('Inserisci un numero valido di partecipanti (es. 60).'); return; }
+
+  b.disabled = true; b.textContent = 'Salvataggio…';
+  try{
+    await apiPostRetry({ action:'saveConfig', eventName:name, total:Math.min(200,num) });
+    state.eventName = name; state.total = Math.min(200,num);
+    el('cfgTotal').value = state.total;
+    toast('Impostazioni salvate: ' + state.total + ' partecipanti.');
+    renderContestantList();
+  }catch(e){ toast('Salvataggio non riuscito: ' + e.message, 4000); }
+  b.disabled = false; b.textContent = 'Salva impostazioni';
+};
+
+el('saveOverride').onclick = async ()=>{
+  const val = el('cfgOverride').value.replace(/[^0-9,\s]/g,'').trim();
+  try{
+    await apiPostRetry({ action:'saveConfig', podiumOverride: val });
+    state.podiumOverride = val;
+    lastRenderSig = null;
+    toast(val ? 'Ordine podio forzato salvato.' : 'Ordine podio riportato ad automatico.');
+    renderAdminResults();
+  }catch(e){ toast('Non salvato: ' + e.message); }
+};
+
+el('toggleVoting').onclick = async ()=>{
+  let next, msg = null;
+  if(state.phase === 'pending') next = 'open';
+  else if(state.phase === 'open'){
+    next = 'closed';
+    const ties = detectTies();
+    msg = 'Chiudere la votazione e passare alla premiazione?' +
+      (ties.length ? '\n\nATTENZIONE: c\'è un pareggio sul podio. Se non forzi l\'ordine, verrà usato il numero più basso.' : '');
+  } else {
+    next = 'open';
+    msg = 'Riaprire la votazione? La premiazione si azzera e il podio non sarà più visibile.';
   }
-  counts.sort((a,b)=> b.c - a.c);
-  counts.forEach(({n,c})=>{
+  if(msg && !confirm(msg)) return;
+
+  try{
+    await apiPostRetry({ action:'saveConfig', phase: next, revealStep: 0 });
+    state.phase = next; state.revealStep = 0; confettiPlayed = false;
+    updateToggleLabel(); renderTieWarning();
+    lastRenderSig = null; renderAll(); scheduleNextPoll();
+    toast(next === 'open' ? 'Votazione aperta.' : 'Votazione chiusa. Usa "Avanti" per condurre la premiazione.', 4000);
+  }catch(e){ toast('Operazione non riuscita: ' + e.message); }
+};
+
+/* ---- Comandi premiazione ---- */
+async function setRevealStep(step){
+  const clamped = Math.max(0, Math.min(7, step));
+  const prev = state.revealStep;
+  state.revealStep = clamped;
+  if(clamped < 6) confettiPlayed = false;
+  lastRenderSig = null; renderAll();
+  try{
+    await apiPostRetry({ action:'setReveal', revealStep: clamped }, 3);
+    scheduleNextPoll();
+  }catch(e){
+    state.revealStep = prev; lastRenderSig = null; renderAll();
+    toast('Non riesco a sincronizzare lo step: ' + e.message, 4000);
+  }
+}
+el('revealNext').onclick = ()=> setRevealStep(state.revealStep + 1);
+el('revealBack').onclick = ()=> setRevealStep(state.revealStep - 1);
+
+/* ---- Foto: lista con progresso ---- */
+function renderContestantList(){
+  const list = el('contestantList');
+  list.innerHTML = '';
+  if(!state.total){
+    list.innerHTML = '<p style="color:#7f9690;font-size:13px;">Imposta prima il numero di partecipanti.</p>';
+    return;
+  }
+  for(let n=1; n<=state.total; n++){
+    const c = state.contestants[String(n)];
+    const row = document.createElement('div');
+    row.className = 'contestant-row';
+    row.innerHTML =
+      '<div class="num2">' + n + '</div>' +
+      '<div class="thumb" id="thumb-' + n + '">' + (c && c.thumb ? '<img loading="lazy" src="' + c.thumb + '">' : 'nessuna') + '</div>' +
+      '<input type="file" accept="image/*,.heic,.heif" id="file-' + n + '" style="display:none;">' +
+      '<button class="fileBtn" id="btn-' + n + '">' + (c && c.thumb ? 'Sostituisci' : 'Carica foto') + '</button>' +
+      '<div class="up-progress" id="prog-' + n + '"><i></i></div>' +
+      '<div class="up-stage" id="stage-' + n + '"></div>';
+    list.appendChild(row);
+    el('btn-' + n).onclick = ()=> el('file-' + n).click();
+    el('file-' + n).onchange = (ev)=> handlePhotoUpload(ev, n);
+  }
+}
+
+function renderAdminResults(){
+  const list = el('resultsList');
+  list.innerHTML = '';
+  if(!state.total) return;
+  const ranked = rankedList();
+  const max = Math.max(1, ranked.length ? ranked[0].c : 1);
+  ranked.forEach((item, i)=>{
     const row = document.createElement('div');
     row.className = 'results-row';
-    row.innerHTML = `
-      <div style="width:26px;font-weight:600;">${n}</div>
-      <div class="bar"><span style="width:${(c/max*100)}%;"></span></div>
-      <div style="width:34px;text-align:right;">${c}</div>
-    `;
+    row.innerHTML =
+      '<div style="width:22px;color:#7f9690;font-size:12px;">' + (i+1) + '°</div>' +
+      '<div style="width:26px;font-weight:600;">' + item.n + '</div>' +
+      '<div class="bar"><span style="width:' + (item.c/max*100) + '%;"></span></div>' +
+      '<div style="width:34px;text-align:right;">' + item.c + '</div>';
     list.appendChild(row);
   });
 }
+
+el('refreshResults').onclick = async ()=>{
+  try{ await loadFull(); renderAdminResults(); renderTieWarning(); toast('Risultati aggiornati.'); }
+  catch(e){ toast('Aggiornamento non riuscito: ' + e.message); }
+};
+
+el('resetVotes').onclick = async ()=>{
+  if(!confirm("Azzerare tutti i voti? L'operazione non è reversibile.")) return;
+  try{
+    await apiPostRetry({ action:'resetVotes' });
+    state.votes = {}; renderAdminResults(); renderTieWarning();
+    toast('Voti azzerati. Chi ha già votato resta bloccato sul proprio dispositivo.', 4000);
+  }catch(e){ toast('Non riuscito: ' + e.message); }
+};
+
+el('resetAll').onclick = async ()=>{
+  if(!confirm('Reset TOTALE: cancella foto, voti e impostazioni, e sblocca il voto su tutti i dispositivi. Non è reversibile. Continuare?')) return;
+  if(!confirm("Sei sicuro? È l'ultima conferma.")) return;
+
+  const b = el('resetAll');
+  b.disabled = true; b.textContent = 'Reset in corso…';
+  try{
+    await apiPostRetry({ action:'resetAll' });
+    writeStoredVote(null);
+    myVote = null; confettiPlayed = false; lastRenderSig = null;
+    await loadFull();
+    el('cfgName').value = state.eventName || '';
+    el('cfgTotal').value = state.total || '';
+    el('cfgOverride').value = '';
+    updateToggleLabel(); renderTieWarning(); renderContestantList(); renderAdminResults();
+    renderAll();
+    toast('Evento azzerato: si riparte da zero per tutti.', 4000);
+  }catch(e){ toast('Reset non riuscito: ' + e.message, 4000); }
+  b.disabled = false; b.textContent = 'Reset totale — ricomincia da zero';
+};
+
+/* ======================= AVVIO ======================= */
+
+document.addEventListener('visibilitychange', ()=>{
+  if(!document.hidden){ pollDelay = desiredDelay(); pollTick(); }
+});
+window.addEventListener('online', ()=>{ netTrouble = false; pollTick(); });
+
+async function init(){
+  if(sessionStorage.getItem('rd-admin') === '1') isAdmin = true;
+  el('apiWarning').classList.toggle('hidden', apiConfigured());
+
+  if(CONFIG_MISSING){
+    el('gallery').innerHTML = '<div class="empty">' +
+      '<strong>config.js non trovato.</strong><br><br>' +
+      'Il file <code>config.js</code> deve stare nella stessa cartella di ' +
+      '<code>index.html</code>, nella root del repository. Caricalo e ricarica la pagina.' +
+      '</div>';
+    el('statusText').textContent = 'Configurazione mancante: manca config.js.';
+    return;
+  }
+  if(!apiConfigured()){
+    renderStatus();
+    el('gallery').innerHTML = '<div class="empty">' +
+      '<strong>API_URL non impostato.</strong><br><br>' +
+      'Apri <code>config.js</code> e incolla l&#39;URL del tuo Web App di Google Apps Script ' +
+      '(quello che finisce con <code>/exec</code>).' +
+      '</div>';
+    return;
+  }
+  try{
+    await loadFull();
+    state._voteRows = null;
+  }catch(e){
+    console.error('init failed', e);
+    showNetWarning(true, 'Non riesco a contattare il server, riprovo…');
+  }
+  renderAll();
+  flushVoteQueue();
+  scheduleNextPoll();
+}
+init();
 </script>
 
 </body>
