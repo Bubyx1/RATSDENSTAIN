@@ -6,7 +6,7 @@
 window.RD_CONFIG = {
 
   // URL del Web App di Google Apps Script. Finisce con /exec
-  API_URL: "INCOLLA_QUI_URL_WEB_APP_GOOGLE_APPS_SCRIPT",
+  API_URL: "https://script.google.com/macros/s/AKfycbwG3pTPj3lO9O_IYFJ5vci7WhM-oxYznDTR0DB5CDurgxJcOIs7VhxgXGFtmIxRWmyn/exec",
 
   // PIN del pannello organizzatori.
   // NOTA: questo file è pubblico su GitHub Pages, quindi il PIN è leggibile
