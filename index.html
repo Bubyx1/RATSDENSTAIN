@@ -415,6 +415,24 @@
   .card img{ opacity:0; transition:opacity .35s ease; }
   .card img.loaded{ opacity:1; }
 
+  .runoff-stage{ text-align:center; padding:18px 0 10px; }
+  .runoff-rule{ background:rgba(232,196,104,0.1); border:1px solid rgba(232,196,104,0.45); color:#E8C468; border-radius:var(--radius); padding:12px 14px; font-size:14px; line-height:1.5; margin-bottom:18px; text-align:left; }
+  .runoff-title{ font-family:'Bebas Neue',sans-serif; text-transform:uppercase; letter-spacing:0.03em; font-size:clamp(24px,6.5vw,34px); margin:0 0 6px; }
+  .countdown{ font-family:'Bebas Neue',sans-serif; font-size:60px; line-height:1; color:var(--accent); margin:10px 0 4px; }
+  .countdown.urgente{ color:#E8C468; animation:battito .9s ease-in-out infinite; }
+  @keyframes battito{ 0%,100%{transform:scale(1);} 50%{transform:scale(1.09);} }
+  .countdown-barra{ height:5px; border-radius:3px; background:var(--ink-soft); overflow:hidden; margin:0 auto 20px; max-width:320px; }
+  .countdown-barra i{ display:block; height:100%; background:var(--accent); transition:width .5s linear; }
+  .runoff-grid{ display:flex; gap:14px; justify-content:center; flex-wrap:wrap; margin-top:6px; }
+  .runoff-card{ width:150px; max-width:42vw; }
+  .runoff-card .photo-wrap{ position:relative; border-radius:14px; overflow:hidden; aspect-ratio:3/4; border:2px solid var(--line); background:var(--ink-soft); }
+  .runoff-card .photo-wrap img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .runoff-card.selezionato .photo-wrap{ border-color:var(--accent); box-shadow:0 0 18px rgba(62,217,180,.45); }
+  .runoff-card.votabile .photo-wrap{ animation: votableGlow 2.4s ease-in-out infinite; }
+  .runoff-card .rnum{ font-family:'Bebas Neue',sans-serif; font-size:22px; margin-top:8px; }
+  .runoff-chiuso{ font-size:15px; color:#a9c2ba; margin-top:16px; }
+  .badge-spareggio{ display:inline-block; margin-top:8px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; background:rgba(62,217,180,.15); color:var(--accent); border:1px solid rgba(62,217,180,.45); }
+
   .tie-warning{
     margin-top:12px; padding:10px 12px; border-radius:10px;
     background:rgba(232,196,104,0.1); border:1px solid rgba(232,196,104,0.4);
@@ -440,6 +458,7 @@
 
   <div class="grid" id="gallery"></div>
   <div class="reveal-stage hidden" id="revealView"></div>
+  <div class="runoff-stage hidden" id="runoffView"></div>
   <div class="results-public hidden" id="resultsPublicView"></div>
 </div>
 
@@ -501,6 +520,7 @@
         <button class="btn" id="toggleVoting">Apri votazione</button>
       </div>
       <div id="tieWarning"></div>
+      <div id="runoffAdmin"></div>
     </div>
 
     <div class="admin-section">
@@ -568,8 +588,14 @@ const START_QUALITY   = 0.80;
 let state = {
   eventName: "Concorso Miglior Costume", total: 0, phase: "pending",
   sessionId: "", revealStep: 0, stateVersion: -1, podiumOverride: "",
-  contestants: {}, votes: {}
+  runoffRound: 0, runoffCandidates: "", runoffEndsAt: 0, tiebreak: {},
+  contestants: {}, votes: {}, runoffVotes: {}
 };
+// scarto fra orologio del server e del telefono: il countdown deve essere
+// identico su tutti i dispositivi, non dipendere dall’ora locale
+let clockOffset = 0;
+let runoffTimer = null;
+let myRunoffVote = null;
 let myVote = null;
 let isAdmin = false;
 let pollTimer = null;
@@ -621,10 +647,14 @@ function apiConfigured(){ return API_URL && API_URL.indexOf('http') === 0; }
 async function apiGet(mode){
   if(!apiConfigured()) return null;
   const url = API_URL + (API_URL.indexOf('?') >= 0 ? '&' : '?') + 'mode=' + mode + '&t=' + Date.now();
+  const t0 = Date.now();
   const res = await fetch(url, { method:'GET' });
   if(!res.ok) throw new Error('HTTP ' + res.status);
   const data = await res.json();
   if(data && data.error) throw new Error(data.error);
+  // compenso meta' del tempo di andata e ritorno, altrimenti il countdown
+  // risulterebbe piu' lungo del reale di tutta la latenza di rete
+  if(data && data.serverNow) clockOffset = data.serverNow + (Date.now()-t0)/2 - Date.now();
   return data;
 }
 
@@ -738,7 +768,7 @@ async function castVote(n){
 function desiredDelay(){
   if(netTrouble) return Math.min(pollDelay * 2, POLL_MAX_MS);
   const revealing = state.phase === 'closed' && state.revealStep > 0 && state.revealStep < 7;
-  return revealing ? POLL_REVEAL_MS : POLL_IDLE_MS;
+  return (revealing || state.phase === 'runoff') ? POLL_REVEAL_MS : POLL_IDLE_MS;
 }
 
 function scheduleNextPoll(){
@@ -767,6 +797,9 @@ async function pollTick(){
       state.phase = light.phase;
       state.revealStep = light.revealStep;
       state.stateVersion = light.stateVersion;
+      state.runoffRound = light.runoffRound || 0;
+      state.runoffCandidates = light.runoffCandidates || '';
+      state.runoffEndsAt = light.runoffEndsAt || 0;
     }
     state.total = light.total;
     state._voteRows = light.voteRows;
@@ -815,7 +848,8 @@ function renderAll(){
   const sig = JSON.stringify({
     p: state.phase, r: state.revealStep, t: state.total,
     c: state.contestants, v: state.phase==='closed' ? state.votes : null,
-    m: myVote, o: state.podiumOverride, a: isAdmin
+    m: myVote, o: state.podiumOverride, a: isAdmin,
+    rr: state.runoffRound, rc: state.runoffCandidates, tb: state.tiebreak
   });
   if(sig === lastRenderSig) return;
   lastRenderSig = sig;
@@ -850,7 +884,18 @@ function renderStatus(){
 
 function renderMainView(){
   const gallery = el('gallery'), reveal = el('revealView'), results = el('resultsPublicView');
-  const bar = el('revealBar');
+  const bar = el('revealBar'); const runoff = el('runoffView');
+
+  if(state.phase === 'runoff'){
+    gallery.classList.add('hidden'); reveal.classList.add('hidden');
+    results.classList.add('hidden'); bar.classList.add('hidden');
+    runoff.classList.remove('hidden');
+    el('eventSub').classList.add('hidden');
+    renderRunoff();
+    return;
+  }
+  runoff.classList.add('hidden');
+  stopRunoffTimer();
 
   if(state.phase === 'closed'){
     gallery.classList.add('hidden');
@@ -953,16 +998,19 @@ function openLightbox(n){
   forzati nelle prime posizioni (serve per sciogliere un pareggio a mano).
 */
 function rankedList(){
+  const tb = state.tiebreak || {};
   const list = [];
   for(let n=1; n<=state.total; n++){
     list.push({
       n,
       c: (state.votes && state.votes[String(n)]) || 0,
+      tb: Number(tb[String(n)]) || 0,
       photo: (state.contestants[String(n)] || {}).full || '',
       thumb: (state.contestants[String(n)] || {}).thumb || ''
     });
   }
-  list.sort((a,b)=> b.c - a.c || a.n - b.n);
+  // a parita' di voti decide lo spareggio; il numero e' l'ultima spiaggia
+  list.sort((a,b)=> b.c - a.c || ((a.tb && b.tb) ? a.tb - b.tb : 0) || a.n - b.n);
 
   const override = (state.podiumOverride || '').split(',')
     .map(s=>parseInt(s.trim(),10)).filter(x=>!isNaN(x));
@@ -981,18 +1029,27 @@ function rankedList(){
 function isTied(list, idx){
   const item = list[idx];
   if(!item || item.c === 0) return false;
-  return list.some((o,i)=> i !== idx && o.c === item.c);
+  return list.some((o,i)=> i !== idx && o.c === item.c && !(item.tb && o.tb));
 }
 
-function detectTies(){
+// Gruppi in parita' che toccano il podio, coi candidati per lo spareggio.
+function tieGroups(){
   const list = rankedList();
-  const top = list.slice(0, 4);
-  const problems = [];
-  for(let i=0; i<Math.min(3, top.length); i++){
-    if(isTied(list, i)) problems.push({ place:i+1, votes: top[i].c });
-  }
-  return problems;
+  const gruppi = [];
+  const visti = new Set();
+  list.forEach((x, i)=>{
+    if(x.c === 0 || visti.has(x.c)) return;
+    const membri = list.filter(o=> o.c === x.c);
+    if(membri.length < 2) return;
+    visti.add(x.c);
+    if(membri.every(m=>m.tb)) return;
+    if(i > 2) return;
+    gruppi.push({ posto:i+1, voti:x.c, candidati: membri.map(m=>m.n) });
+  });
+  return gruppi;
 }
+
+function detectTies(){ return tieGroups().map(g=>({ place:g.posto, votes:g.voti })); }
 
 const REVEAL_COPY = {
   0: { kicker:'La votazione è chiusa.', hint:'La premiazione sta per iniziare…' },
@@ -1026,7 +1083,9 @@ function renderRevealStep(){
 
   const cls = conf.place===1 ? 'gold' : conf.place===2 ? 'silver' : 'bronze';
   const label = conf.place===1 ? 'Vincitore' : conf.place + '° posto';
-  const tie = isTied(list, conf.i) ? '<div class="tie-flag">A pari merito</div>' : '';
+  const tie = isTied(list, conf.i)
+    ? '<div class="tie-flag">A pari merito</div>'
+    : (item.tb ? '<div class="badge-spareggio">Deciso allo spareggio</div>' : '');
 
   view.innerHTML =
     '<div class="reveal-card ' + cls + '">' +
@@ -1055,7 +1114,9 @@ function renderFinalResults(){
   if(first && second){
     const d = first.c - second.c;
     if(d > 0) gap = '<div class="pvotes">+' + d + (d===1?' voto':' voti') + ' sul secondo</div>';
-    else if(first.c > 0) gap = '<div class="pvotes">Primo posto a pari merito</div>';
+    else if(first.c > 0) gap = (first.tb && second.tb)
+      ? '<div class="pvotes">Pari a ' + first.c + ' voti: il primo posto e stato deciso allo spareggio</div>'
+      : '<div class="pvotes">Primo posto a pari merito</div>';
   }
 
   const slot = (item, place)=>{
@@ -1105,6 +1166,72 @@ function launchConfetti(){
     layer.appendChild(p);
     setTimeout(()=>p.remove(), 5200);
   }
+}
+
+/* ======================= SPAREGGIO ======================= */
+
+function runoffKey(){ return 'rd-runoff-' + (state.sessionId||'') + '-' + state.runoffRound; }
+function loadMyRunoffVote(){ const v = localStorage.getItem(runoffKey()); myRunoffVote = v ? parseInt(v,10) : null; }
+function secondiRimasti(){ if(!state.runoffEndsAt) return 0; return Math.max(0, Math.round((state.runoffEndsAt - (Date.now() + clockOffset)) / 1000)); }
+function stopRunoffTimer(){ if(runoffTimer){ clearInterval(runoffTimer); runoffTimer = null; } }
+function candidatiSpareggio(){ return String(state.runoffCandidates||'').split(',').map(x=>parseInt(x.trim(),10)).filter(x=>!isNaN(x)); }
+
+function renderRunoff(){
+  const view = el('runoffView');
+  loadMyRunoffVote();
+  const cand = candidatiSpareggio();
+  const voti = state.votes || {};
+  const pariA = cand.length ? (voti[String(cand[0])] || 0) : 0;
+  const elenco = cand.map(n=>'nº '+n).join(' e ');
+  view.innerHTML =
+    '<div class="runoff-rule">⚖️ <strong>Regola:</strong> ' + elenco + ' sono arrivati a pari merito con ' + pariA + ' voti. Si decide con uno spareggio: vince chi prende più voti in questo turno. Ogni dispositivo può votare una volta sola.</div>' +
+    '<h2 class="runoff-title">Spareggio</h2>' +
+    '<div class="countdown" id="cdNum">--</div>' +
+    '<div class="countdown-barra"><i id="cdBar"></i></div>' +
+    '<div class="runoff-grid">' + cand.map(n=>{
+      const c = state.contestants[String(n)] || {};
+      const mio = myRunoffVote === n;
+      return '<div class="runoff-card' + (mio?' selezionato':'') + '" data-n="'+n+'">' +
+        '<div class="photo-wrap">' + (c.thumb ? '<img src="'+c.thumb+'" alt="Costume '+n+'">' : '<div class="noimg">Nessuna foto</div>') + '</div>' +
+        '<div class="rnum">Nº '+n+'</div>' + (mio ? '<div class="badge-spareggio">Il tuo voto</div>' : '') + '</div>';
+    }).join('') + '</div>' +
+    '<div class="runoff-chiuso" id="cdStato"></div>';
+  aggiornaCountdown();
+  stopRunoffTimer();
+  runoffTimer = setInterval(aggiornaCountdown, 500);
+  view.querySelectorAll('.runoff-card').forEach(card=>{ card.onclick = ()=> castRunoffVote(parseInt(card.dataset.n,10)); });
+}
+
+function aggiornaCountdown(){
+  const num = el('cdNum'), bar = el('cdBar'), stato = el('cdStato');
+  if(!num){ stopRunoffTimer(); return; }
+  const s = secondiRimasti();
+  num.textContent = s;
+  num.classList.toggle('urgente', s <= 10 && s > 0);
+  if(bar) bar.style.width = Math.min(100, (s/60)*100) + '%';
+  const scaduto = s <= 0;
+  document.querySelectorAll('.runoff-card').forEach(c=>{
+    c.classList.toggle('votabile', !scaduto && !myRunoffVote);
+    c.style.cursor = (!scaduto && !myRunoffVote) ? 'pointer' : 'default';
+  });
+  if(stato){ stato.textContent = scaduto ? 'Spareggio chiuso. In attesa del risultato…' : (myRunoffVote ? 'Hai votato il nº ' + myRunoffVote + '. Grazie!' : 'Tocca il costume che preferisci.'); }
+  if(scaduto) stopRunoffTimer();
+}
+
+async function castRunoffVote(n){
+  if(myRunoffVote){ toast('Hai già votato in questo spareggio.'); return; }
+  if(secondiRimasti() <= 0){ toast('Tempo scaduto.'); return; }
+  localStorage.setItem(runoffKey(), String(n));
+  myRunoffVote = n;
+  renderRunoff();
+  try{
+    const r = await apiPostRetry({ action:'vote', voteToken: uuid(), number: n, sessionId: state.sessionId, round: state.runoffRound }, 3);
+    if(r && r.ok){ toast('🐀 Voto registrato nello spareggio.'); }
+    else if(r && (r.error==='runoff_expired' || r.error==='runoff_closed')){
+      toast('Tempo scaduto: voto non registrato.');
+      localStorage.removeItem(runoffKey()); myRunoffVote = null; renderRunoff();
+    }
+  }catch(e){ toast('Rete lenta: riprovo…'); }
 }
 
 /* ======================= VOTO: CONFERMA ======================= */
@@ -1390,17 +1517,81 @@ function updateToggleLabel(){
   const b = el('toggleVoting');
   if(state.phase === 'pending') b.textContent = 'Apri votazione';
   else if(state.phase === 'open') b.textContent = 'Chiudi votazione e avvia premiazione';
+  else if(state.phase === 'runoff') b.textContent = 'Spareggio in corso…';
   else b.textContent = 'Riapri la votazione';
+  b.disabled = (state.phase === 'runoff');
 }
 
 function renderTieWarning(){
-  const box = el('tieWarning');
+  const box = el('tieWarning'); const cmd = el('runoffAdmin');
+  cmd.innerHTML = '';
   if(state.phase === 'pending'){ box.innerHTML=''; return; }
-  const ties = detectTies();
-  if(!ties.length){ box.innerHTML=''; return; }
-  box.innerHTML = '<div class="tie-warning">⚠️ Pareggio sul podio: ' +
-    ties.map(t=>t.place + '° posto (' + t.votes + ' voti)').join(', ') +
-    '. L\'ordine automatico usa il numero più basso. Se vuoi decidere tu, compila "Ordine podio forzato" più sotto prima di avviare la premiazione.</div>';
+
+  if(state.phase === 'runoff'){
+    const s = secondiRimasti();
+    box.innerHTML = '<div class="tie-warning">⏱️ Spareggio in corso fra i costumi ' + candidatiSpareggio().join(', ') + '. Tempo rimasto: <strong>' + s + 's</strong>.</div>';
+    cmd.innerHTML = '<div class="row"><button class="btn primary" id="btnChiudiSpareggio">' + (s>0 ? 'Chiudi in anticipo e calcola' : 'Chiudi spareggio e calcola') + '</button></div>';
+    el('btnChiudiSpareggio').onclick = chiudiSpareggio;
+    return;
+  }
+
+  const gruppi = tieGroups();
+  if(!gruppi.length){ box.innerHTML=''; return; }
+  const g = gruppi[0];
+  box.innerHTML = '<div class="tie-warning">⚠️ Pareggio al ' + g.posto + '° posto: costumi <strong>' + g.candidati.join(', ') + '</strong> a ' + g.voti + ' voti. Va risolto prima di avviare la premiazione.</div>';
+  cmd.innerHTML =
+    '<div class="row"><button class="btn primary" id="btnAvviaSpareggio">Avvia spareggio (60s)</button></div>' +
+    '<div class="row"><button class="btn" id="btnDecidiIo">Decido io: vince il ' + g.candidati[0] + '</button></div>' +
+    '<p style="font-size:11px;color:#7f9690;margin:8px 0 0;">Lo spareggio riapre il voto solo fra questi costumi. Se preferisci non fermare la serata, puoi assegnare tu l\'ordine.</p>';
+  el('btnAvviaSpareggio').onclick = ()=> avviaSpareggio(g.candidati);
+  el('btnDecidiIo').onclick = ()=> decidiManualmente(g.candidati);
+}
+
+async function avviaSpareggio(candidati){
+  if(!confirm('Avviare lo spareggio di 60 secondi fra i costumi ' + candidati.join(', ') + '?\n\nTutti i dispositivi passeranno alla schermata di voto.')) return;
+  adminWritePending = true;
+  try{
+    const r = await apiPostRetry({ action:'startRunoff', candidates: candidati, durationSec: 60 });
+    state.phase = 'runoff'; state.runoffRound = r.runoffRound;
+    state.runoffCandidates = r.runoffCandidates; state.runoffEndsAt = r.runoffEndsAt;
+    if(r.serverNow) clockOffset = r.serverNow - Date.now();
+    if(r.stateVersion != null) state.stateVersion = r.stateVersion;
+    lastRenderSig = null; renderAll(); renderTieWarning(); updateToggleLabel();
+    toast('Spareggio avviato: 60 secondi.', 4000);
+  }catch(e){ toast('Avvio non riuscito: ' + e.message, 4000); }
+  finally{ adminWritePending = false; scheduleNextPoll(); }
+}
+
+async function chiudiSpareggio(){
+  adminWritePending = true;
+  try{
+    const r = await apiPostRetry({ action:'closeRunoff' });
+    state.phase = 'closed'; state.revealStep = 0;
+    if(r.tiebreak) state.tiebreak = r.tiebreak;
+    if(r.stateVersion != null) state.stateVersion = r.stateVersion;
+    await loadFull();
+    lastRenderSig = null; renderAll(); renderTieWarning(); renderAdminResults(); updateToggleLabel();
+    if(r.ancoraPari){ toast('Lo spareggio e finito di nuovo in pareggio: rilancialo o decidi tu.', 6000); }
+    else { const vinc = r.risultati && r.risultati[0]; toast('Spareggio deciso: vince il nº ' + (vinc ? vinc.n : '?') + '.', 5000); }
+  }catch(e){ toast('Chiusura non riuscita: ' + e.message, 4000); }
+  finally{ adminWritePending = false; scheduleNextPoll(); }
+}
+
+async function decidiManualmente(candidati){
+  const scelta = prompt('Chi vince fra ' + candidati.join(', ') + '? Scrivi il numero del costume:', candidati[0]);
+  if(scelta === null) return;
+  const n = parseInt(String(scelta).replace(/[^0-9]/g,''), 10);
+  if(isNaN(n) || candidati.indexOf(n) < 0){ toast('Numero non valido: scegli fra ' + candidati.join(', ')); return; }
+  const ordine = [n].concat(candidati.filter(x=>x!==n));
+  adminWritePending = true;
+  try{
+    const r = await apiPostRetry({ action:'setTiebreak', order: ordine });
+    if(r.tiebreak) state.tiebreak = r.tiebreak;
+    if(r.stateVersion != null) state.stateVersion = r.stateVersion;
+    lastRenderSig = null; renderAll(); renderTieWarning(); renderAdminResults();
+    toast('Ordine assegnato: vince il nº ' + n + '.', 4000);
+  }catch(e){ toast('Non riuscito: ' + e.message); }
+  finally{ adminWritePending = false; scheduleNextPoll(); }
 }
 
 el('cfgSave').onclick = async ()=>{
