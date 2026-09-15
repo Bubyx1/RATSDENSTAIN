@@ -1083,9 +1083,11 @@ function renderRevealStep(){
 
   const cls = conf.place===1 ? 'gold' : conf.place===2 ? 'silver' : 'bronze';
   const label = conf.place===1 ? 'Vincitore' : conf.place + '° posto';
+  // l'etichetta deve dire il vero: spareggio o decisione degli organizzatori
+  const metodo = ((state.tiebreak||{}).__m || {})[String(item.n)];
   const tie = isTied(list, conf.i)
     ? '<div class="tie-flag">A pari merito</div>'
-    : (item.tb ? '<div class="badge-spareggio">Deciso allo spareggio</div>' : '');
+    : (item.tb ? '<div class="badge-spareggio">' + (metodo === 'm' ? 'Pari merito sciolto dagli organizzatori' : 'Deciso allo spareggio') + '</div>' : '');
 
   view.innerHTML =
     '<div class="reveal-card ' + cls + '">' +
@@ -1115,7 +1117,7 @@ function renderFinalResults(){
     const d = first.c - second.c;
     if(d > 0) gap = '<div class="pvotes">+' + d + (d===1?' voto':' voti') + ' sul secondo</div>';
     else if(first.c > 0) gap = (first.tb && second.tb)
-      ? '<div class="pvotes">Pari a ' + first.c + ' voti: il primo posto e stato deciso allo spareggio</div>'
+      ? '<div class="pvotes">Pari a ' + first.c + ' voti: primo posto deciso ' + ((((state.tiebreak||{}).__m||{})[String(first.n)] === 'm') ? 'dagli organizzatori' : 'allo spareggio') + '</div>'
       : '<div class="pvotes">Primo posto a pari merito</div>';
   }
 
