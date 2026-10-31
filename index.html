@@ -203,6 +203,7 @@
   }
   .contestant-row .thumb img{ width:100%; height:100%; object-fit:cover; }
   .contestant-row .num2{ font-family:'Bebas Neue', sans-serif; font-weight:700; width:26px; }
+  .contestant-row .up-btns{ display:flex; gap:8px; flex:1; justify-content:flex-end; }
   .contestant-row .fileBtn{
     font-size:12px; padding:8px 10px; border-radius:8px;
     border:1px solid var(--line); background:transparent; color:var(--bone); cursor:pointer;
@@ -433,6 +434,23 @@
   .runoff-chiuso{ font-size:15px; color:#a9c2ba; margin-top:16px; }
   .badge-spareggio{ display:inline-block; margin-top:8px; font-size:11px; font-weight:700; padding:3px 9px; border-radius:20px; background:rgba(62,217,180,.15); color:var(--accent); border:1px solid rgba(62,217,180,.45); }
 
+  .card .cname{
+    position:absolute; left:0; right:0; bottom:0; z-index:1;
+    padding:22px 10px 8px; font-size:14px; font-weight:600; color:#fff;
+    background:linear-gradient(transparent, rgba(0,0,0,.8));
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none;
+  }
+  .card.mine .cname{ bottom:30px; }
+  .contestant-row .name-in{
+    flex-basis:100%; order:5; margin-left:38px; padding:9px 10px; border-radius:8px;
+    border:1px solid var(--line); background:var(--ink); color:var(--bone); font:inherit; font-size:15px;
+  }
+  .contestant-row .name-in:focus{ outline:none; border-color:var(--accent); }
+  .contestant-row .name-in.saved{ border-color:rgba(62,217,180,.6); }
+  .rname{ flex:0 1 38%; min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-weight:600; }
+  .who{ display:block; font-size:.62em; letter-spacing:.02em; opacity:.9; font-family:inherit; }
+  .reveal-name{ font-size:22px; font-weight:700; margin-top:4px; }
+
   .vote-photo{
     width:150px; margin:0 auto 14px; aspect-ratio:3/4; border-radius:12px; overflow:hidden;
     border:2px solid var(--accent); background:var(--ink); cursor:zoom-in;
@@ -659,6 +677,53 @@ function showNetWarning(show, msg){
 function uuid(){
   if(crypto && crypto.randomUUID) return crypto.randomUUID();
   return 'v-' + Date.now() + '-' + Math.random().toString(36).slice(2,10);
+}
+
+/* ======================= NOMI DEI PARTECIPANTI ======================= */
+/*
+  Il backend non ha un campo per i nomi, ma salva gia' il nome dell'evento
+  (saveConfig). I nomi viaggiano in coda a quel testo, dopo un separatore
+  invisibile, come JSON: nessuna modifica al backend necessaria.
+  Sul telefono dell'organizzatore i nomi restano anche in localStorage, cosi'
+  non si perdono mai, neanche se il server dovesse rifiutarli.
+*/
+const NAMES_SEP = '⁣NOMI⁣';
+let namesLocal = {};
+try{ namesLocal = JSON.parse(localStorage.getItem('rd-names') || '{}') || {}; }catch(e){ namesLocal = {}; }
+let namesServerBroken = false;
+
+function splitEventName(raw){
+  raw = String(raw || '');
+  const i = raw.indexOf(NAMES_SEP);
+  if(i < 0) return { title: raw, names: {}, ok: true };
+  try{ return { title: raw.slice(0, i), names: JSON.parse(raw.slice(i + NAMES_SEP.length)) || {}, ok: true }; }
+  catch(e){ return { title: raw.slice(0, i), names: {}, ok: false }; }
+}
+function allNames(){ return Object.assign({}, state.names || {}, namesLocal); }
+function nomeDi(n){ const v = allNames()[String(n)]; return v ? String(v).trim() : ''; }
+function escHtml(t){ return String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// "nº 3 — Marco" se c'e' il nome, altrimenti "nº 3"
+function etichetta(n){ const nm = nomeDi(n); return 'nº ' + n + (nm ? ' — ' + nm : ''); }
+function composeEventName(title){
+  const names = {};
+  const all = allNames();
+  Object.keys(all).forEach(k=>{ const v = String(all[k] || '').trim(); if(v) names[k] = v.slice(0, 40); });
+  return Object.keys(names).length ? title + NAMES_SEP + JSON.stringify(names) : title;
+}
+
+let namesSaveTimer = null;
+function queueNamesSave(){
+  clearTimeout(namesSaveTimer);
+  namesSaveTimer = setTimeout(saveNamesNow, 700);
+}
+async function saveNamesNow(){
+  try{
+    await apiPostRetry({ action:'saveConfig', eventName: composeEventName(state.eventName || 'Concorso Miglior Costume'), total: state.total });
+    state.names = Object.assign({}, state.names || {}, namesLocal);
+    document.querySelectorAll('.name-in').forEach(i=>{ i.classList.add('saved'); });
+  }catch(e){
+    toast('Nome non salvato sul server, riprovo al prossimo cambio. Resta comunque su questo telefono.', 4000);
+  }
 }
 
 /* ======================= IMMAGINI: CARICAMENTO ROBUSTO ======================= */
@@ -966,6 +1031,13 @@ async function loadFull(){
   state = Object.assign(state, data);
   if(adminWritePending){ state.phase = fasePrima; state.revealStep = stepPrima; state.stateVersion = verPrima; }
   lastFullAt = Date.now();
+  const parsed = splitEventName(state.eventName);
+  state.eventName = parsed.title;
+  state.names = parsed.names;
+  if(!parsed.ok && !namesServerBroken && isAdmin){
+    namesServerBroken = true;
+    toast('Il server ha tagliato i nomi: per ora li vedi solo su questo telefono.', 5000);
+  }
   el('eventTitle').textContent = state.eventName || 'Concorso Miglior Costume';
   syncMyVoteFromStorage();
   // niente piu' lastRenderSig = null qui: la firma di renderAll confronta gia'
@@ -981,7 +1053,8 @@ function renderAll(){
     p: state.phase, r: state.revealStep, t: state.total,
     c: state.contestants, v: state.phase==='closed' ? state.votes : null,
     m: myVote, o: state.podiumOverride, a: isAdmin,
-    rr: state.runoffRound, rc: state.runoffCandidates, tb: state.tiebreak
+    rr: state.runoffRound, rc: state.runoffCandidates, tb: state.tiebreak,
+    nm: allNames()
   });
   if(sig === lastRenderSig) return;
   lastRenderSig = sig;
@@ -1118,6 +1191,11 @@ function renderGallery(){
     const thumb = (c && c.thumb) || '';
     if(e.thumb !== thumb){ e.thumb = thumb; setCardPhoto(e, n); }
 
+    const nm = nomeDi(n);
+    let tag = e.card.querySelector('.cname');
+    if(nm && !tag){ tag = document.createElement('div'); tag.className = 'cname'; e.card.appendChild(tag); }
+    if(tag){ if(nm) tag.textContent = nm; else tag.remove(); }
+
     e.card.classList.toggle('mine', myVote === n);
     e.card.classList.toggle('votable', canVote);
     const badge = e.card.querySelector('.mine-badge');
@@ -1133,7 +1211,7 @@ function openLightbox(n){
   const box = document.createElement('div');
   box.className = 'lightbox';
   box.innerHTML =
-    '<div class="lb-meta">Costume nº ' + n + '</div>' +
+    '<div class="lb-meta">Costume ' + escHtml(etichetta(n)) + '</div>' +
     '<button class="lb-close" aria-label="Chiudi">✕</button>' +
     '<div class="lb-spinner">Caricamento…</div>';
   document.body.appendChild(box);
@@ -1271,6 +1349,7 @@ function renderRevealStep(){
       '</div>' +
       '<div class="reveal-place">' + label + '</div>' +
       '<div class="reveal-num">Costume nº ' + item.n + '</div>' +
+      (nomeDi(item.n) ? '<div class="reveal-name">' + escHtml(nomeDi(item.n)) + '</div>' : '') +
       '<div class="reveal-votes">' + item.c + (item.c===1?' voto':' voti') + '</div>' +
       tie +
     '</div>';
@@ -1306,7 +1385,7 @@ function renderFinalResults(){
           : '<div class="noimg">Nessuna foto</div>') +
       '</div>' +
       '<div class="medal">' + label + '</div>' +
-      '<div class="pnum">Nº ' + item.n + '</div>' +
+      '<div class="pnum">Nº ' + item.n + (nomeDi(item.n) ? '<span class="who">' + escHtml(nomeDi(item.n)) + '</span>' : '') + '</div>' +
       '<div class="pvotes">' + item.c + (item.c===1?' voto':' voti') + '</div>' +
     '</div>';
   };
@@ -1315,6 +1394,7 @@ function renderFinalResults(){
     '<div class="ranking-row">' +
       '<div class="rpos">' + (i+1) + '°</div>' +
       '<div class="rnum">' + item.n + '</div>' +
+      '<div class="rname">' + escHtml(nomeDi(item.n)) + '</div>' +
       '<div class="rbar"><span style="width:' + (list[0].c ? (item.c/list[0].c*100) : 0) + '%;"></span></div>' +
       '<div class="rcount">' + item.c + '</div>' +
     '</div>').join('');
@@ -1359,7 +1439,7 @@ function renderRunoff(){
   const cand = candidatiSpareggio();
   const voti = state.votes || {};
   const pariA = cand.length ? (voti[String(cand[0])] || 0) : 0;
-  const elenco = cand.map(n=>'nº '+n).join(' e ');
+  const elenco = cand.map(n=>etichetta(n)).join(' e ');
   view.innerHTML =
     '<div class="runoff-rule">⚖️ <strong>Regola:</strong> ' + elenco + ' sono arrivati a pari merito con ' + pariA + ' voti. Si decide con uno spareggio: vince chi prende più voti in questo turno. Ogni dispositivo può votare una volta sola.</div>' +
     '<h2 class="runoff-title">Spareggio</h2>' +
@@ -1370,7 +1450,7 @@ function renderRunoff(){
       const mio = myRunoffVote === n;
       return '<div class="runoff-card' + (mio?' selezionato':'') + '" data-n="'+n+'">' +
         '<div class="photo-wrap">' + (c.thumb ? imgTag(c.thumb, 640, 'Costume '+n) : '<div class="noimg">Nessuna foto</div>') + '</div>' +
-        '<div class="rnum">Nº '+n+'</div>' + (mio ? '<div class="badge-spareggio">Il tuo voto</div>' : '') + '</div>';
+        '<div class="rnum">Nº '+n+(nomeDi(n) ? '<span class="who">'+escHtml(nomeDi(n))+'</span>' : '')+'</div>' + (mio ? '<div class="badge-spareggio">Il tuo voto</div>' : '') + '</div>';
     }).join('') + '</div>' +
     '<div class="runoff-chiuso" id="cdStato"></div>';
   hydrateImages(view);
@@ -1415,7 +1495,7 @@ async function castRunoffVote(n){
 /* ======================= VOTO: CONFERMA ======================= */
 
 function openVoteConfirm(n){
-  el('voteText').textContent = 'Stai per votare il costume numero ' + n + '. Potrai votare una sola volta da questo dispositivo.';
+  el('voteText').textContent = 'Stai per votare il costume ' + etichetta(n) + '. Potrai votare una sola volta da questo dispositivo.';
   // prima si votava "alla cieca" sulla miniatura: ora si vede la foto e
   // toccandola si apre in grande
   const c = state.contestants[String(n)] || {};
@@ -1718,9 +1798,10 @@ async function uploadPhoto(file, n){
       state.contestants[String(n)] = { thumb: res.thumbUrl, full: res.fullUrl };
       const t = el('thumb-' + n);
       if(t){ t.innerHTML = imgTag(res.thumbUrl, 640, ''); hydrateImages(t); }
-      const b = el('btn-' + n); if(b) b.textContent = 'Sostituisci';
       renderAll();
       toast('Foto caricata per il numero ' + n + '.');
+      const ni = el('name-' + n);
+      if(ni && !ni.value.trim()){ ni.focus(); ni.scrollIntoView({ block:'center', behavior:'smooth' }); }
       setTimeout(()=> hideUp(n), 2500);
     } else {
       throw (lastErr || new Error((res && res.error) || 'errore sconosciuto'));
@@ -1868,7 +1949,7 @@ el('cfgSave').onclick = async ()=>{
 
   b.disabled = true; b.textContent = 'Salvataggio…';
   try{
-    await apiPostRetry({ action:'saveConfig', eventName:name, total:Math.min(200,num) });
+    await apiPostRetry({ action:'saveConfig', eventName:composeEventName(name), total:Math.min(200,num) });
     state.eventName = name; state.total = Math.min(200,num);
     el('cfgTotal').value = state.total;
     toast('Impostazioni salvate: ' + state.total + ' partecipanti.');
@@ -1956,13 +2037,31 @@ function renderContestantList(){
     row.innerHTML =
       '<div class="num2">' + n + '</div>' +
       '<div class="thumb" id="thumb-' + n + '">' + (c && c.thumb ? imgTag(c.thumb, 640, '') : 'nessuna') + '</div>' +
-      '<input type="file" accept="image/*,.heic,.heif" id="file-' + n + '" style="display:none;">' +
-      '<button class="fileBtn" id="btn-' + n + '">' + (c && c.thumb ? 'Sostituisci' : 'Carica foto') + '</button>' +
+      // due input separati: "capture" apre direttamente la fotocamera
+      // posteriore, l'altro apre la galleria del telefono
+      '<input type="file" accept="image/*" capture="environment" id="cam-' + n + '" style="display:none;">' +
+      '<input type="file" accept="image/*" id="file-' + n + '" style="display:none;">' +
+      '<div class="up-btns">' +
+        '<button class="fileBtn" id="btncam-' + n + '">📷 Scatta</button>' +
+        '<button class="fileBtn" id="btn-' + n + '">🖼️ Galleria</button>' +
+      '</div>' +
+      '<input type="text" class="name-in" id="name-' + n + '" maxlength="40" autocomplete="off" autocapitalize="words" enterkeyhint="done" placeholder="Nome del partecipante" value="' + escHtml(nomeDi(n)) + '">' +
       '<div class="up-progress" id="prog-' + n + '"><i></i></div>' +
       '<div class="up-stage" id="stage-' + n + '"></div>';
     list.appendChild(row);
+    const nameIn = el('name-' + n);
+    nameIn.addEventListener('input', ()=>{
+      namesLocal[String(n)] = nameIn.value;
+      try{ localStorage.setItem('rd-names', JSON.stringify(namesLocal)); }catch(e){}
+      nameIn.classList.remove('saved');
+      queueNamesSave();
+      lastRenderSig = null; renderAll(); renderAdminResults();
+    });
+    nameIn.addEventListener('keydown', (ev)=>{ if(ev.key === 'Enter') nameIn.blur(); });
     hydrateImages(row);
+    el('btncam-' + n).onclick = ()=> el('cam-' + n).click();
     el('btn-' + n).onclick = ()=> el('file-' + n).click();
+    el('cam-' + n).onchange = (ev)=> handlePhotoUpload(ev, n);
     el('file-' + n).onchange = (ev)=> handlePhotoUpload(ev, n);
   }
 }
@@ -1979,6 +2078,7 @@ function renderAdminResults(){
     row.innerHTML =
       '<div style="width:22px;color:#7f9690;font-size:12px;">' + (i+1) + '°</div>' +
       '<div style="width:26px;font-weight:600;">' + item.n + '</div>' +
+      '<div class="rname" style="font-weight:500;">' + escHtml(nomeDi(item.n)) + '</div>' +
       '<div class="bar"><span style="width:' + (item.c/max*100) + '%;"></span></div>' +
       '<div style="width:34px;text-align:right;">' + item.c + '</div>';
     list.appendChild(row);
@@ -2008,6 +2108,7 @@ el('resetAll').onclick = async ()=>{
   try{
     await apiPostRetry({ action:'resetAll' });
     writeStoredVote(null);
+    namesLocal = {}; try{ localStorage.removeItem('rd-names'); }catch(e){}
     myVote = null; confettiPlayed = false; lastRenderSig = null;
     await loadFull();
     el('cfgName').value = state.eventName || '';
